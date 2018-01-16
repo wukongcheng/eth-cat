@@ -344,21 +344,6 @@ contract ClockAuctionBase {
 }
 
 contract ClockAuction is ClockAuctionBase {
-
-    /// @dev The ERC-165 interface signature for ERC-721.
-    ///  Ref: https://github.com/ethereum/EIPs/issues/165
-    ///  Ref: https://github.com/ethereum/EIPs/issues/721
-    bytes4 constant InterfaceSignature_ERC721 = bytes4(0x9a20483d);
-
-    /// @dev Constructor creates a reference to the NFT ownership contract
-    ///  and verifies the owner cut is in the valid range.
-    /// @param _nftAddress - address of a deployed contract implementing
-    ///  the Nonfungible Interface.
-    function ClockAuction(address _nftAddress) public {
-        ERC721 candidateContract = ERC721(_nftAddress);
-        nonFungibleContract = candidateContract;
-    }
-
     /// @dev Creates and begins a new auction.
     /// @param _tokenId - ID of token to auction, sender must be owner.
     /// @param _startingPrice - Price of item (in wei) at beginning of auction.
@@ -475,9 +460,15 @@ contract SiringClockAuction is ClockAuction {
     bool public isSiringClockAuction = true;
     KittyCore public kittyCore;
 
-    // Delegate constructor
-    function SiringClockAuction(address _nftAddr) public
-        ClockAuction(_nftAddr) {}
+    function setERC721Address(address _nftAddress) external {
+        ERC721 candidateContract = ERC721(_nftAddress);
+        nonFungibleContract = candidateContract;
+    }
+
+    function setERC20Address(address _erc20Address) external {
+        ERC20 candidateContract = ERC20(_erc20Address);
+        niuTokenContract = candidateContract;
+    }
 
     function setKittyCoreAddress(address _address) external{
         KittyCore candidateContract = KittyCore(_address);

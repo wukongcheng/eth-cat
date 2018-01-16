@@ -44,3 +44,68 @@ miner.start(2);
 Contract mined! address: 0x25cbcc6852397a25d32f5c543ef8347468d9d663 transactionHash: 0x9c597cbe70adccee96e8492429347f25b7519a6a57a0f191f9f33a5f277ca075
 
 ```
+
+
+# Test Plan
+
+> 以下测试步骤基于geth console环境进行
+
+## 初始化
+
+### 根据各个合约部署后的地址以及ABI创建各自的访问代理对象：
+
+kittyCoreContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+saleAuctionContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+siringAuctionContract = web3.eth.contract(...).at("0xcaaa498e7711aca691aca69a4369eb601aca69aa");
+ckTokenContract = web3.eth.contract(...).at("0xcafsfdsf69sdfdfdfdf369dsfcewrt434bdfg");
+geneScienceContract = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
+
+### 为不同合约之间的相互调用设置相应的合约地址：
+
+kittycore.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
+kittycore.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
+kittycore.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
+
+siringAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+siringAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+siringAuction.setKittyCoreAddress.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+
+saleAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+saleAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+
+## 创建并赠送营销猫
+
+kittycore.createPromoKitty.sendTransaction(256, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+
+## 创建并上架销售初代猫
+
+kittycore.createGen0Auction.sendTransaction(256, {from:eth.accounts[0], gas:900000});
+
+## 上架售卖流程
+
+kittyCoreContract.createSaleAuction.sendTransaction(uint256 _kittyId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, {from: eth.accounts[0], gas:900000});
+
+## 下架售卖流程
+
+saleAuctionContract.cancelAuction.sendTransaction(uint256 _tokenId, {from:eth.accounts[0], gas:900000});
+
+## 购买流程
+
+ckTokenContract.approve.sendTransaction(saleAuctionContract_address, uint256 price, {from:eth.accounts[0], gas:900000})；
+
+saleAuctionContract.bid.sendTransaction(uint256 tokenId, uint256 price, {from:eth.accounts[0], gas:900000});
+
+## 上架配育服务流程
+
+kittyCoreContract.createSiringAuction.sendTransaction(uint256 _kittyId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, {from: eth.accounts[0], gas:900000});
+
+## 下架配育服务流程
+
+siringAuctionContract.cancelAuction.sendTransaction(uint256 _tokenId, {from:eth.accounts[0], gas:900000});
+
+## 购买配育服务
+
+ckTokenContract.approve.sendTransaction(siringAuctionContract_address, uint256 price, {from:eth.accounts[0], gas:900000})；
+
+siringAuctionContract.bid.sendTransaction(uint256 tokenId, uint256 price, uint256 _ownerTokenId, {from:eth.accounts[0], gas:900000});
+
