@@ -82,7 +82,7 @@ kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], ga
 
 ## 创建并上架销售初代猫
 
-kittycore.createGen0Auction.sendTransaction(256, {from:eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/208/1516179516x-1566660906.jpg)
 
 ## 上架售卖流程
 

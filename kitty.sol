@@ -840,7 +840,7 @@ contract KittyMinting is KittyAuction {
     uint256 public constant GEN0_CREATION_LIMIT = 45000;
 
     // Constants for gen0 auctions.
-    uint256 public constant GEN0_STARTING_PRICE = 10 finney;
+    uint256 public constant GEN0_STARTING_PRICE = 500;
     uint256 public constant GEN0_AUCTION_DURATION = 1 days;
 
     // Counts the number of cats the contract owner has created.
