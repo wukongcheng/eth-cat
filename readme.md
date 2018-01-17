@@ -76,6 +76,9 @@ saleAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0
 ## 创建并赠送营销猫
 
 kittycore.createPromoKitty.sendTransaction(256, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittycore.getHisFirstKitty(eth.accounts[0])
+
+kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
 
 ## 创建并上架销售初代猫
 
