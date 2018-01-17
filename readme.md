@@ -55,27 +55,37 @@ Contract mined! address: 0x25cbcc6852397a25d32f5c543ef8347468d9d663 transactionH
 ### 根据各个合约部署后的地址以及ABI创建各自的访问代理对象：
 
 kittyCoreContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+
 saleAuctionContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+
 siringAuctionContract = web3.eth.contract(...).at("0xcaaa498e7711aca691aca69a4369eb601aca69aa");
+
 ckTokenContract = web3.eth.contract(...).at("0xcafsfdsf69sdfdfdfdf369dsfcewrt434bdfg");
+
 geneScienceContract = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
 
 ### 为不同合约之间的相互调用设置相应的合约地址：
 
 kittycore.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
+
 kittycore.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
+
 kittycore.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
 
 siringAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+
 siringAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+
 siringAuction.setKittyCoreAddress.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
 
 saleAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+
 saleAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
 
 ## 创建并赠送营销猫
 
 kittycore.createPromoKitty.sendTransaction(256, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+
 kittycore.getHisFirstKitty(eth.accounts[0])
 
 kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
