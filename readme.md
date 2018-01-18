@@ -96,7 +96,7 @@ kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], ga
 
 ## 上架售卖流程
 
-kittyCoreContract.createSaleAuction.sendTransaction(uint256 _kittyId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, {from: eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/209/1516267268x-1566660906.jpg)
 
 ## 下架售卖流程
 
