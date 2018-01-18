@@ -100,7 +100,7 @@ kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], ga
 
 ## 下架售卖流程
 
-saleAuctionContract.cancelAuction.sendTransaction(uint256 _tokenId, {from:eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/209/1516284552x-1404793495.jpg)
 
 ## 购买流程
 
