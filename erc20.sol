@@ -22,8 +22,11 @@ contract CKToken is ERC20 {
     uint256 _supply;
     mapping (address => mapping (address => uint256)) _approvals;
     
-    function CKToken () public {
+    function CKToken (uint256 supply) public {
         _cfo = msg.sender;
+
+        _balances[_cfo] = supply;
+        _supply = supply;
     }
 
     modifier onlyCFO() {
@@ -31,17 +34,14 @@ contract CKToken is ERC20 {
         _;
     }
     
-    function setSupply(uint256 supply) onlyCFO external {
-        _balances[_cfo] = supply;
-        _supply = supply;
-    }
-    
     function totalSupply() public constant returns (uint256) {
         return _supply;
     }
+
     function balanceOf(address src) public constant returns (uint256) {
         return _balances[src];
     }
+    
     function allowance(address src, address guy) public constant returns (uint256) {
         return _approvals[src][guy];
     }
