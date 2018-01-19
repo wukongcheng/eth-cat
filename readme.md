@@ -111,11 +111,11 @@ kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], ga
 
 ## 上架配育服务流程
 
-kittyCoreContract.createSiringAuction.sendTransaction(uint256 _kittyId, uint256 _startingPrice, uint256 _endingPrice, uint256 _duration, {from: eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/209/1516350757x-1566657699.jpg)
 
 ## 下架配育服务流程
 
-siringAuctionContract.cancelAuction.sendTransaction(uint256 _tokenId, {from:eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/209/1516353565x-1566657699.jpg)
 
 ## 购买配育服务
 
