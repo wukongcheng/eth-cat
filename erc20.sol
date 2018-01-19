@@ -102,4 +102,8 @@ contract CKToken is ERC20 {
         return true;
     }
 
+    function getCFO() external view returns (address) {
+        return _cfo;
+    }
+
 }

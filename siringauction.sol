@@ -8,6 +8,8 @@ contract ERC20 {
     function transfer( address to, uint value) public returns (bool ok);
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
+    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
+    function getCFO() external returns (address);
 
     event Transfer( address indexed from, address indexed to, uint value);
     event Approval( address indexed owner, address indexed spender, uint value);
@@ -142,6 +144,7 @@ contract KittyCore is KittyMinting {
     function setNewAddress(address _v2Address) external;
     function getKitty(uint256 _id) external view returns (bool isGestating,bool isReady,uint256 cooldownIndex,uint256 nextActionAt,uint256 siringWithId,uint256 birthTime,uint256 matronId,uint256 sireId,uint256 generation,uint256 genes);
     function unpause() public;
+    function getCFO() external returns (address);
 }
 
 contract ClockAuctionBase {
@@ -251,11 +254,11 @@ contract ClockAuctionBase {
         // to the sender so we can't have a reentrancy attack.
         _removeAuction(_tokenId);
 
-        // Transfer proceeds to seller (if there are any!)
-        if (price > 0) {
-            // Bidder need to call the ERC20.approve(thisContractAddress, tokenNum) first!
-            niuTokenContract.transfer(seller, _bidAmount);
-        }
+        uint256 fee = uint256(_bidAmount * 3 / 80);
+        niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
+        niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
+
+        niuTokenContract.transfer(seller, _bidAmount);
 
         // Tell the world!
         AuctionSuccessful(_tokenId, _bidAmount, msg.sender);

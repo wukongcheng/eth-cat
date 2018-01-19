@@ -999,4 +999,5 @@ contract KittyCore is KittyMinting {
             genes = kit.genes;
         }
     }
+
 }

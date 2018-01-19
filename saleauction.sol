@@ -9,6 +9,7 @@ contract ERC20 {
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
     function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
+    function getCFO() external returns (address);
 
     event Transfer( address indexed from, address indexed to, uint value);
     event Approval( address indexed owner, address indexed spender, uint value);
@@ -252,7 +253,9 @@ contract ClockAuctionBase {
         // to the sender so we can't have a reentrancy attack.
         _removeAuction(_tokenId);
 
-        niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount);
+        uint256 fee = uint256(_bidAmount * 3 / 80);
+        niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
+        niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
 
         // Tell the world!
         AuctionSuccessful(_tokenId, _bidAmount, msg.sender);
