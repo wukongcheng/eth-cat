@@ -149,6 +149,21 @@ contract GeneScience {
 		return uint256(r);
     }
 
+    function getCoolDown(uint256 genes) external view returns (uint16) {
+        bytes32 a = bytes32(genes);
+        uint8[] storage pos = _attribute[15];
+        uint16 firstPos = 5;
+
+    	for(uint16 i=0; i<pos.length; i++) {
+    		if((bytes32(0x1) << pos[i]) & a > 0) {
+    			firstPos = i;
+    			break;
+    		}
+    	}
+
+        return firstPos;
+    }
+
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32) {
     	uint32 rate = _variation_rate[attID];
     	if((random() % 1000) >= rate)

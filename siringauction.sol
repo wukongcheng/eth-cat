@@ -278,10 +278,6 @@ contract ClockAuctionBase {
         return (_auction.startedAt > 0);
     }
 
-    /// @dev Returns current price of an NFT on auction. Broken into two
-    ///  functions (this one, that computes the duration from the auction
-    ///  structure, and the other that does the price computation) so we
-    ///  can easily test that the price computation works correctly.
     function _currentPrice(Auction storage _auction)
         internal
         view
@@ -289,9 +285,6 @@ contract ClockAuctionBase {
     {
         uint256 secondsPassed = 0;
 
-        // A bit of insurance against negative values (or wraparound).
-        // Probably not necessary (since Ethereum guarnatees that the
-        // now variable doesn't ever go backwards).
         if (now > _auction.startedAt) {
             secondsPassed = now - _auction.startedAt;
         }
@@ -304,10 +297,6 @@ contract ClockAuctionBase {
         );
     }
 
-    /// @dev Computes the current price of an auction. Factored out
-    ///  from _currentPrice so we can run extensive unit tests.
-    ///  When testing, make this function public and turn on
-    ///  `Current price computation` test suite.
     function _computeCurrentPrice(
         uint256 _startingPrice,
         uint256 _endingPrice,
@@ -318,27 +307,11 @@ contract ClockAuctionBase {
         pure
         returns (uint256)
     {
-        // NOTE: We don't use SafeMath (or similar) in this function because
-        //  all of our public functions carefully cap the maximum values for
-        //  time (at 64-bits) and currency (at 128-bits). _duration is
-        //  also known to be non-zero (see the require() statement in
-        //  _addAuction())
         if (_secondsPassed >= _duration) {
-            // We've reached the end of the dynamic pricing portion
-            // of the auction, just return the end price.
             return _endingPrice;
         } else {
-            // Starting price can be higher than ending price (and often is!), so
-            // this delta can be negative.
             int256 totalPriceChange = int256(_endingPrice) - int256(_startingPrice);
-
-            // This multiplication can't overflow, _secondsPassed will easily fit within
-            // 64-bits, and totalPriceChange will easily fit within 128-bits, their product
-            // will always fit within 256-bits.
             int256 currentPriceChange = totalPriceChange * int256(_secondsPassed) / int256(_duration);
-
-            // currentPriceChange can be negative, but if so, will have a magnitude
-            // less that _startingPrice. Thus, this result will always end up positive.
             int256 currentPrice = int256(_startingPrice) + currentPriceChange;
 
             return uint256(currentPrice);
@@ -528,11 +501,10 @@ contract SiringClockAuction is ClockAuction {
     /// is the KittyCore contract because all bid methods
     /// should be wrapped. Also returns the kitty to the
     /// seller rather than the winner.
-    function bid(uint256 _sireId, uint256 _price, uint256 _matronId)
+    function bid(uint256 _sireId, uint256 _matronId, uint256 _price)
         external
         returns(uint256)
     {
-        require(_owns(msg.sender, _matronId));
         Auction storage auction = tokenIdToAuction[_sireId];
         require(_isOnAuction(auction));
         address seller = auction.seller;

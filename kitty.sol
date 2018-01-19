@@ -53,7 +53,7 @@ contract SiringClockAuction is ClockAuction {
     function setKittyCoreAddress(address _address) external;
     function cancelAuction(uint256 _tokenId) external;
     function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price, uint256 _ownerTokenId) external returns(uint256);
+    function bid(uint256 _sireId, uint256 _matronId, uint256 _price) external returns(uint256);
 }
 
 contract SaleClockAuction is ClockAuction {
@@ -87,6 +87,7 @@ contract GeneScience {
     function getBitMask(uint32[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function getCoolDown(uint256 genes) external view returns (uint16);
 }
 
 contract KittyAccessControl {
@@ -201,23 +202,16 @@ contract KittyBase is KittyAccessControl {
         uint32 siringWithId;
         uint16 cooldownIndex;
         uint16 generation;
+        uint16 breedTimes;
     }
 
     /*** CONSTANTS ***/
-    uint32[14] public cooldowns = [
-        uint32(1 minutes),
-        uint32(2 minutes),
-        uint32(5 minutes),
+    uint32[6] public cooldowns = [
         uint32(10 minutes),
-        uint32(30 minutes),
         uint32(1 hours),
-        uint32(2 hours),
         uint32(4 hours),
-        uint32(8 hours),
         uint32(16 hours),
-        uint32(1 days),
         uint32(2 days),
-        uint32(4 days),
         uint32(7 days)
     ];
 
@@ -231,6 +225,12 @@ contract KittyBase is KittyAccessControl {
     
     SaleClockAuction public saleAuction;
     SiringClockAuction public siringAuction;
+    GeneScience public geneScience;
+
+    function setGeneScienceAddress(address _address) external onlyCEO {
+        GeneScience candidateContract = GeneScience(_address);
+        geneScience = candidateContract;
+    }
 
     function _transfer(address _from, address _to, uint256 _tokenId)  internal {
         // Since the number of kittens is capped to 2^32 we can't overflow this
@@ -272,11 +272,8 @@ contract KittyBase is KittyAccessControl {
         require(_sireId == uint256(uint32(_sireId)));
         require(_generation == uint256(uint16(_generation)));
 
-        // New kitty starts with the same cooldown as parent gen/2
-        uint16 cooldownIndex = uint16(_generation / 2);
-        if (cooldownIndex > 13) {
-            cooldownIndex = 13;
-        }
+        // The cooldown is decided by genes
+        uint16 cooldownIndex = geneScience.getCoolDown(_genes);
 
         Kitty memory _kitty = Kitty({
             genes: _genes,
@@ -286,7 +283,8 @@ contract KittyBase is KittyAccessControl {
             sireId: uint32(_sireId),
             siringWithId: 0,
             cooldownIndex: cooldownIndex,
-            generation: uint16(_generation)
+            generation: uint16(_generation),
+            breedTimes: uint16(0)
         });
         uint256 newKittenId = kitties.push(_kitty) - 1;
 
@@ -431,43 +429,14 @@ contract KittyOwnership is KittyBase, ERC721 {
 
 contract KittyBreeding is KittyOwnership {
 
-    /// @dev The Pregnant event is fired when two cats successfully breed and the pregnancy
-    ///  timer begins for the matron.
     event Pregnant(address owner, uint256 matronId, uint256 sireId, uint256 cooldownEndBlock);
 
-    /// @notice The minimum payment required to use breedWithAuto(). This fee goes towards
-    ///  the gas cost paid by whatever calls giveBirth(), and can be dynamically updated by
-    ///  the COO role as the gas price changes.
-    uint256 public autoBirthFee = 2 finney;
-
-    // Keeps track of number of pregnant kitties.
     uint256 public pregnantKitties;
 
-    /// @dev The address of the sibling contract that is used to implement the sooper-sekret
-    ///  genetic combination algorithm.
-    GeneScience public geneScience;
-
-    /// @dev Update the address of the genetic contract, can only be called by the CEO.
-    /// @param _address An address of a GeneScience contract instance to be used from this point forward.
-    function setGeneScienceAddress(address _address) external onlyCEO {
-        GeneScience candidateContract = GeneScience(_address);
-        // Set the new contract address
-        geneScience = candidateContract;
-    }
-
-    /// @dev Checks that a given kitten is able to breed. Requires that the
-    ///  current cooldown is finished (for sires) and also checks that there is
-    ///  no pending pregnancy.
-    function _isReadyToBreed(Kitty _kit) internal view returns (bool) {
-        // In addition to checking the cooldownEndBlock, we also need to check to see if
-        // the cat has a pending birth; there can be some period of time between the end
-        // of the pregnacy timer and the birth event.
+   function _isReadyToBreed(Kitty _kit) internal view returns (bool) {
         return (_kit.siringWithId == 0) && (_kit.cooldownEndBlock <= uint64(block.number));
     }
 
-    /// @dev Check if a sire has authorized breeding with this matron. True if both sire
-    ///  and matron have the same owner, or if the sire has given siring permission to
-    ///  the matron's owner (via approveSiring()).
     function _isSiringPermitted(uint256 _sireId, uint256 _matronId) internal view returns (bool) {
         address matronOwner = kittyIndexToOwner[_matronId];
         address sireOwner = kittyIndexToOwner[_sireId];
@@ -482,33 +451,19 @@ contract KittyBreeding is KittyOwnership {
     /// @param _kitten A reference to the Kitty in storage which needs its timer started.
     function _triggerCooldown(Kitty storage _kitten) internal {
         // Compute an estimation of the cooldown time in blocks (based on current cooldownIndex).
-        _kitten.cooldownEndBlock = uint64((cooldowns[_kitten.cooldownIndex]/secondsPerBlock) + block.number);
+        uint64 blocknum = uint64(cooldowns[_kitten.cooldownIndex] / secondsPerBlock);
+        blocknum = blocknum + _kitten.breedTimes * (blocknum / 5);
 
-        // Increment the breeding count, clamping it at 13, which is the length of the
-        // cooldowns array. We could check the array size dynamically, but hard-coding
-        // this as a constant saves gas. Yay, Solidity!
-        if (_kitten.cooldownIndex < 13) {
-            _kitten.cooldownIndex += 1;
-        }
+        _kitten.cooldownEndBlock = uint64(blocknum + block.number);
+        _kitten.breedTimes = _kitten.breedTimes + 1;
     }
 
-    /// @notice Grants approval to another user to sire with one of your Kitties.
-    /// @param _addr The address that will be able to sire with your Kitty. Set to
-    ///  address(0) to clear all siring approvals for this Kitty.
-    /// @param _sireId A Kitty that you own that _addr will now be able to sire with.
-    function approveSiring(address _addr, uint256 _sireId)
+   function approveSiring(address _addr, uint256 _sireId)
         external
         whenNotPaused
     {
         require(_owns(msg.sender, _sireId));
         sireAllowedToAddress[_sireId] = _addr;
-    }
-
-    /// @dev Updates the minimum payment required for calling giveBirthAuto(). Can only
-    ///  be called by the COO address. (This fee is used to offset the gas cost incurred
-    ///  by the autobirth daemon).
-    function setAutoBirthFee(uint256 val) external onlyCOO {
-        autoBirthFee = val;
     }
 
     /// @dev Checks to see if a given Kitty is pregnant and (if so) if the gestation
@@ -542,12 +497,6 @@ contract KittyBreeding is KittyOwnership {
         return kitties[_kittyId].siringWithId != 0;
     }
 
-    /// @dev Internal check to see if a given sire and matron are a valid mating pair. DOES NOT
-    ///  check ownership permissions (that is up to the caller).
-    /// @param _matron A reference to the Kitty struct of the potential matron.
-    /// @param _matronId The matron's ID.
-    /// @param _sire A reference to the Kitty struct of the potential sire.
-    /// @param _sireId The sire's ID
     function _isValidMatingPair(
         Kitty storage _matron,
         uint256 _matronId,
@@ -589,8 +538,6 @@ contract KittyBreeding is KittyOwnership {
         return true;
     }
 
-    /// @dev Internal check to see if a given sire and matron are a valid mating pair for
-    ///  breeding via auction (i.e. skips ownership and siring approval checks).
     function _canBreedWithViaAuction(uint256 _matronId, uint256 _sireId)
         internal
         view
@@ -601,12 +548,6 @@ contract KittyBreeding is KittyOwnership {
         return _isValidMatingPair(matron, _matronId, sire, _sireId);
     }
 
-    /// @notice Checks to see if two cats can breed together, including checks for
-    ///  ownership and siring approvals. Does NOT check that both cats are ready for
-    ///  breeding (i.e. breedWith could still fail until the cooldowns are finished).
-    ///  TODO: Shouldn't this check pregnancy and cooldowns?!?
-    /// @param _matronId The ID of the proposed matron.
-    /// @param _sireId The ID of the proposed sire.
     function canBreedWith(uint256 _matronId, uint256 _sireId)
         external
         view
@@ -827,7 +768,7 @@ contract KittyAuction is KittyBreeding {
         require(_price >= currentPrice);
 
         // Siring auction will throw if the bid fails.
-        siringAuction.bid(_sireId, _price, _matronId);
+        siringAuction.bid(_sireId, _matronId, _price);
         _breedWith(uint32(_matronId), uint32(_sireId));
     }
 }
