@@ -9,18 +9,22 @@ contract ERC20 {
     function transfer( address to, uint value) public returns (bool ok);
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
+    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
 
     event Transfer( address indexed from, address indexed to, uint value);
     event Approval( address indexed owner, address indexed spender, uint value);
 }    
     
-
+/// @dev The uint of balance is 0.01 Token
 contract CKToken is ERC20 {
 
     address _cfo;
     mapping (address => uint256) _balances;
     uint256 _supply;
     mapping (address => mapping (address => uint256)) _approvals;
+
+    address  _saleAuction;
+    address  _siringAuction;
     
     function CKToken (uint256 supply) public {
         _cfo = msg.sender;
@@ -32,6 +36,14 @@ contract CKToken is ERC20 {
     modifier onlyCFO() {
         require(msg.sender == _cfo);
         _;
+    }
+
+    function setSaleAuctionAddress(address _address) external onlyCFO {
+        _saleAuction = _address;
+    }
+
+    function setSiringAuctionAddress(address _address) external onlyCFO {
+        _siringAuction = _address;
     }
     
     function totalSupply() public constant returns (uint256) {
@@ -57,6 +69,18 @@ contract CKToken is ERC20 {
         return true;
     }
     
+    function transferByAuction(address src, address dst, uint wad) public returns (bool) {
+        assert(msg.sender == _saleAuction || msg.sender == _siringAuction);
+        assert(_balances[src] >= wad);
+        
+        _balances[src] = _balances[src] - wad;
+        _balances[dst] = _balances[dst] + wad;
+        
+        Transfer(src, dst, wad);
+        
+        return true;
+    }
+
     function transferFrom(address src, address dst, uint wad) public returns (bool) {
         assert(_balances[src] >= wad);
         assert(_approvals[src][msg.sender] >= wad);

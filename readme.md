@@ -104,9 +104,10 @@ kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], ga
 
 ## 购买流程
 
-ckTokenContract.approve.sendTransaction(saleAuctionContract_address, uint256 price, {from:eth.accounts[0], gas:900000})；
-
-saleAuctionContract.bid.sendTransaction(uint256 tokenId, uint256 price, {from:eth.accounts[0], gas:900000});
+![](http://chuantu.biz/t6/209/1516330903x-1566657699.jpg)
+![](http://chuantu.biz/t6/209/1516330947x-1566657699.jpg)
+![](http://chuantu.biz/t6/209/1516330974x-1566657699.jpg)
+![](http://chuantu.biz/t6/209/1516330992x-1566657699.jpg)
 
 ## 上架配育服务流程
 
