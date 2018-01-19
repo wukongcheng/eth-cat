@@ -528,27 +528,27 @@ contract SiringClockAuction is ClockAuction {
     /// is the KittyCore contract because all bid methods
     /// should be wrapped. Also returns the kitty to the
     /// seller rather than the winner.
-    function bid(uint256 _tokenId, uint256 _price, uint256 _ownerTokenId)
+    function bid(uint256 _sireId, uint256 _price, uint256 _matronId)
         external
         returns(uint256)
     {
-        require(_owns(msg.sender, _ownerTokenId));
-        Auction storage auction = tokenIdToAuction[_tokenId];
+        require(_owns(msg.sender, _matronId));
+        Auction storage auction = tokenIdToAuction[_sireId];
         require(_isOnAuction(auction));
         address seller = auction.seller;
         require(seller != address(0));
         require(msg.sender != seller);
 
-        _bid(_tokenId, _price);
-        _escrow(msg.sender, _ownerTokenId);
+        _bid(_sireId, _price);
+        _escrow(msg.sender, _matronId);
 
-        kittyCore.approveSiring(msg.sender, _tokenId);
-        kittyCore.breedWithAuto(_ownerTokenId, _tokenId);
+        kittyCore.approveSiring(msg.sender, _sireId);
+        kittyCore.breedWithAuto(_matronId, _sireId);
 
-        _transfer(seller, _tokenId);
-        _transfer(msg.sender, _ownerTokenId);
+        _transfer(seller, _sireId);
+        _transfer(msg.sender, _matronId);
 
-        return kittyCore.giveBirth(_ownerTokenId);
+        return kittyCore.giveBirth(_matronId);
     }
 
 }

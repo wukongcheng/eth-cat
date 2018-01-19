@@ -4,10 +4,10 @@ contract GeneScience {
 
     uint32 public constant ATTRIBUTE_NUM = 21;
     uint public _startTime;
-    mapping (uint32 => uint32[]) _attribute;
+    mapping (uint32 => uint8[]) _attribute;
     mapping (uint32 => uint8[]) _attribute_mixrule;
-    mapping (uint32 => uint32) _variation_rate;						// 千分之几
-    mapping (uint32 => uint32[]) _variation_rate_distribution;		// 万分之几
+    mapping (uint32 => uint8) _variation_rate;						// 千分之几
+    mapping (uint32 => uint16[]) _variation_rate_distribution;		// 万分之几
     
     function GeneScience() public {
         _startTime = now;
@@ -106,7 +106,7 @@ contract GeneScience {
     }
 
     // index begin with 0
-    function getBitMask(uint32[] index) internal pure returns (bytes32) {
+    function getBitMask(uint8[] index) internal pure returns (bytes32) {
     	bytes32 r = 0x0;
     	for(uint32 i=0; i<index.length; i++) {
     	    bytes32 t = bytes32(0x1) << index[i];
@@ -154,27 +154,27 @@ contract GeneScience {
     	if((random() % 1000) >= rate)
     		return genes;
 
-    	uint32[] storage pos = _attribute[attID];
-    	uint32 firstPos = 257;
+    	uint8[] storage pos = _attribute[attID];
+    	uint16 firstPos = 257;
 
-    	for(uint32 i=0; i<pos.length; i++) {
+    	for(uint16 i=0; i<pos.length; i++) {
     		if((bytes32(0x1) << pos[i]) & genes > 0) {
     			firstPos = i;
     			break;
     		}
     	}
 
-    	uint32[] storage rate_distribution = _variation_rate_distribution[attID];
+    	uint16[] storage rate_distribution = _variation_rate_distribution[attID];
     	
-    	uint32 rd = uint32(random() % 10000);
-    	uint32 total = 10000 - rate_distribution[firstPos];
-    	uint32 begin = 0;
-    	uint32 variation_attr = firstPos;
+    	uint16 rd = uint16(random() % 10000);
+    	uint16 total = 10000 - rate_distribution[firstPos];
+    	uint16 begin = 0;
+    	uint16 variation_attr = firstPos;
 		for(i=0; i<pos.length; i++) {
 			if(i == firstPos)
 				continue;
 
-			uint32 end = uint32((rate_distribution[i] / total) * 100) + begin;
+			uint16 end = uint16((rate_distribution[i] * 10000) / total + begin);
 			if(rd >= begin && rd < end) {
 				variation_attr = i;
 				break;
