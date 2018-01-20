@@ -83,10 +83,9 @@ contract Ownable {
 }
 
 contract GeneScience {
-    function random() internal view returns (uint256);
+    function random() external view returns (uint256);
     function getBitMask(uint32[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
-    function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
     function getCoolDown(uint256 genes) external view returns (uint16);
 }
 
@@ -452,7 +451,9 @@ contract KittyBreeding is KittyOwnership {
     function _triggerCooldown(Kitty storage _kitten) internal {
         // Compute an estimation of the cooldown time in blocks (based on current cooldownIndex).
         uint64 blocknum = uint64(cooldowns[_kitten.cooldownIndex] / secondsPerBlock);
-        blocknum = blocknum + _kitten.breedTimes * (blocknum / 5);
+        for(uint16 i=0; i < _kitten.breedTimes; i++) {
+            blocknum = blocknum + blocknum / 5;
+        }
 
         _kitten.cooldownEndBlock = uint64(blocknum + block.number);
         _kitten.breedTimes = _kitten.breedTimes + 1;
