@@ -850,7 +850,7 @@ contract KittyCore is KittyMinting {
     address public newContractAddress;
 
     /// @notice Creates the main CryptoKitties smart contract instance.
-    function KittyCore() payable public {
+    function KittyCore(address _address) public {
         // Starts paused.
         // paused = true;
 
@@ -859,6 +859,9 @@ contract KittyCore is KittyMinting {
 
         // the creator of the contract is also the initial COO
         cooAddress = msg.sender;
+
+        GeneScience candidateContract = GeneScience(_address);
+        geneScience = candidateContract;
 
         // start with the mythical kitten 0 - so we don't have generation-0 parent issues
         _createKitty(0, 0, 0, uint256(-1), address(0));
