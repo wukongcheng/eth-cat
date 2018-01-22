@@ -170,7 +170,7 @@ contract GeneScience {
     		return genes;
 
     	uint8[] storage pos = _attribute[attID];
-    	uint16 firstPos = 257;
+    	uint16 firstPos = uint16(pos.length);
 
     	for(uint16 i=0; i<pos.length; i++) {
     		if((bytes32(0x1) << pos[i]) & genes > 0) {
@@ -185,7 +185,7 @@ contract GeneScience {
     	uint16 total = 10000 - rate_distribution[firstPos];
     	uint16 begin = 0;
     	uint16 variation_attr = firstPos;
-		for(i=0; i<pos.length; i++) {
+		for(i=0; i<rate_distribution.length; i++) {
 			if(i == firstPos)
 				continue;
 
@@ -198,7 +198,10 @@ contract GeneScience {
 			begin = end;
 		}
 
-		return bytes32(0x0) | (bytes32(0x1) << pos[variation_attr]);
+        if(variation_attr == pos.length)
+		    return bytes32(0x0);
+        
+        return bytes32(0x1) << pos[variation_attr];
     }
     
 }

@@ -54,72 +54,166 @@ Contract mined! address: 0x25cbcc6852397a25d32f5c543ef8347468d9d663 transactionH
 
 ### 根据各个合约部署后的地址以及ABI创建各自的访问代理对象：
 
-kittyCoreContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+```
+kittycore = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
 
-saleAuctionContract = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+kittyownership = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
 
-siringAuctionContract = web3.eth.contract(...).at("0xcaaa498e7711aca691aca69a4369eb601aca69aa");
+kittybreeding = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
 
-ckTokenContract = web3.eth.contract(...).at("0xcafsfdsf69sdfdfdfdf369dsfcewrt434bdfg");
+saleAuction = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
 
-geneScienceContract = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
+siringAuction = web3.eth.contract(...).at("0xcaaa498e7711aca691aca69a4369eb601aca69aa");
+
+ckToken = web3.eth.contract(...).at("0xcafsfdsf69sdfdfdfdf369dsfcewrt434bdfg");
+
+gene = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
+
+```
 
 ### 为不同合约之间的相互调用设置相应的合约地址：
+
+#### kittycore
+
+```
+kittycore.setKittyOwnership.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+
+kittycore.setBreeding.sendTransaction(kittybreedingAddress, {from:eth.accounts[0], gas:900000});
 
 kittycore.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
 
 kittycore.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
 
-kittycore.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
+```
 
-siringAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+#### kittyownership
 
-siringAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+```
 
-siringAuction.setKittyCoreAddress.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+kittyownership.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
 
-saleAuction.setERC721Address.sendTransaction(kittyCoreAddress, {from:eth.accounts[0], gas:900000});
+kittyownership.setKittyCoreAddress.sendTransaction(kittycoreAddress, {from:eth.accounts[0], gas:900000});
+
+```
+
+#### kittybreeding
+
+```
+
+kittybreeding.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
+
+kittybreeding.setKittyOwnership.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+
+```
+
+#### saleAuction
+
+```
+saleAuction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
 
 saleAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
 
+```
+
+#### siringAuction
+
+```
+siringAuction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+
+siringAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+
+siringAuction.setKittyBreedingAddress.sendTransaction(kittybreedingAddress, {from:eth.accounts[0], gas:900000});
+
+```
+
+#### ckToken
+
+```
+
+ckToken.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
+
+ckToken.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
+
+```
+
+
+
 ## 创建并赠送营销猫
+
+```
 
 kittycore.createPromoKitty.sendTransaction(256, eth.accounts[0], {from:eth.accounts[0], gas:900000});
 
-kittycore.getHisFirstKitty(eth.accounts[0])
+kittyownership.getHisFirstKitty(eth.accounts[0]);
 
-kittycore.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+
+```
 
 ## 创建并上架销售初代猫
 
-![](http://chuantu.biz/t6/208/1516179516x-1566660906.jpg)
+```
+
+kittycore.createGen0Auction.sendTransaction(256, {from:eth.accounts[0], gas:900000});
+
+saleAuction.getAuction(1);
+
+```
 
 ## 上架售卖流程
 
-![](http://chuantu.biz/t6/209/1516267268x-1566660906.jpg)
+```
+
+kittycore.createSaleAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:900000});
+
+saleAuction.getAuction(2);
+
+```
 
 ## 下架售卖流程
 
-![](http://chuantu.biz/t6/209/1516284552x-1404793495.jpg)
+```
+
+saleAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:900000});
+
+saleAuction.getAuction(2);
+
+```
 
 ## 购买流程
 
-![](http://chuantu.biz/t6/209/1516330903x-1566657699.jpg)
-![](http://chuantu.biz/t6/209/1516330947x-1566657699.jpg)
-![](http://chuantu.biz/t6/209/1516330974x-1566657699.jpg)
-![](http://chuantu.biz/t6/209/1516330992x-1566657699.jpg)
+```
+
+saleAuction.bid.sendTransaction(2, 20000, {from:eth.accounts[0], gas:900000});
+
+```
 
 ## 上架配育服务流程
 
-![](http://chuantu.biz/t6/209/1516350757x-1566657699.jpg)
+```
+
+kittycore.createSiringAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:900000});
+
+siringAuction.getAuction(2);
+
+```
 
 ## 下架配育服务流程
 
-![](http://chuantu.biz/t6/209/1516353565x-1566657699.jpg)
+```
+
+siringAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:900000});
+
+siringAuction.getAuction(2);
+
+```
 
 ## 购买配育服务
 
-ckTokenContract.approve.sendTransaction(siringAuctionContract_address, uint256 price, {from:eth.accounts[0], gas:900000})；
+```
 
-siringAuctionContract.bid.sendTransaction(uint256 tokenId, uint256 price, uint256 _ownerTokenId, {from:eth.accounts[0], gas:900000});
+kittycore.bidOnSiringAuction.sendTransaction(2, 1, 20000, {from:eth.accounts[0], gas:900000});
 
+kittyownership.getKitty(3);
+
+```
