@@ -412,12 +412,61 @@ contract KittyOwnership is KittyBase, ERC721 {
         allowed = sireAllowedToAddress[_tokenId];
         require(allowed != address(0));
     }
+    
+    function setSireAllowedTo(uint256 _tokenId, address _address) external {
+        require(_address != address(0));
+        sireAllowedToAddress[_tokenId] = _address;
+    }
 
     function deleteSireAllowedTo(uint256 _tokenId) external {
         delete sireAllowedToAddress[_tokenId];
     }
 
-    function getKity(uint256 _tokenId) external view returns(Kitty kitty) {
-        return kitties[_tokenId];
+    function getKitty(uint256 _tokenId) external view returns (
+        uint256 genes,
+        uint256 birthTime,
+        uint256 cooldownEndBlock,
+        uint256 matronId,
+        uint256 sireId,
+        uint256 siringWithId,
+        uint256 cooldownIndex,
+        uint256 generation
+    ) {
+        Kitty storage kit = kitties[_tokenId];
+        
+        cooldownIndex = uint256(kit.cooldownIndex);
+        cooldownEndBlock = uint256(kit.cooldownEndBlock);
+        siringWithId = uint256(kit.siringWithId);
+        birthTime = uint256(kit.birthTime);
+        matronId = uint256(kit.matronId);
+        sireId = uint256(kit.sireId);
+        generation = uint256(kit.generation);
+        genes = kit.genes;
+    }
+    
+    function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external {
+        Kitty storage kit = kitties[_tokenId];
+        kit.siringWithId = _siringWithId;
+    }
+    
+    function setCooldownEndBlock(uint256 _tokenId, uint64 _blocknum) external {
+        Kitty storage kit = kitties[_tokenId];
+        kit.cooldownEndBlock = _blocknum;
+    }
+    
+    function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external {
+        Kitty storage kit = kitties[_tokenId];
+        kit.breedTimes = _breedTimes;
+    }
+
+    function isReadyToBreed(uint256 _tokenId) external view returns (bool) {
+        require(_tokenId > 0);
+        Kitty storage _kit = kitties[_tokenId];
+        return (_kit.siringWithId == 0) && (_kit.cooldownEndBlock <= uint64(block.number));
+    }
+    
+    function deleteSiringWithId(uint256 _tokenId) external {
+        Kitty storage _kit = kitties[_tokenId];
+        delete _kit.siringWithId;
     }
 }
