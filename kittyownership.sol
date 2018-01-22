@@ -6,7 +6,7 @@ contract ERC721 {
     function balanceOf(address _owner) public view returns (uint256 balance);
     function ownerOf(uint256 _tokenId) external view returns (address owner);
     function approve(address _to, uint256 _tokenId) external;
-    function transfer(address _to, uint256 _tokenId) external payable;
+    function transfer(address _to, uint256 _tokenId) external;
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
@@ -322,7 +322,6 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _tokenId
     )
         external
-        payable
     {
         require(_to != address(0));
         require(_to != address(this));
@@ -468,5 +467,38 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSiringWithId(uint256 _tokenId) external {
         Kitty storage _kit = kitties[_tokenId];
         delete _kit.siringWithId;
+    }
+    
+    function getHisFirstKitty(address account)
+        external
+        view
+        returns (
+        uint256 tokenId,
+        bool isGestating,
+        bool isReady,
+        uint256 cooldownIndex,
+        uint256 nextActionAt,
+        uint256 siringWithId,
+        uint256 birthTime,
+        uint256 matronId,
+        uint256 sireId,
+        uint256 generation,
+        uint256 genes
+    ) {
+        if(ownershipTokens[account].length > 0) {
+            tokenId = ownershipTokens[account][0];
+            Kitty storage kit = kitties[tokenId];
+
+            isGestating = (kit.siringWithId != 0);
+            isReady = (kit.cooldownEndBlock <= block.number);
+            cooldownIndex = uint256(kit.cooldownIndex);
+            nextActionAt = uint256(kit.cooldownEndBlock);
+            siringWithId = uint256(kit.siringWithId);
+            birthTime = uint256(kit.birthTime);
+            matronId = uint256(kit.matronId);
+            sireId = uint256(kit.sireId);
+            generation = uint256(kit.generation);
+            genes = kit.genes;
+        }
     }
 }

@@ -374,7 +374,7 @@ contract KittyBreeding is KittyAccessControl {
 
     /// @dev Internal utility function to initiate breeding, assumes that all breeding
     ///  requirements have been checked.
-    function _breedWith(uint256 _matronId, uint256 _sireId) internal {
+    function _breedWith(uint256 _matronId, uint256 _sireId) public {
 
         // Mark the matron as pregnant, keeping track of who the sire is.
         kittyOwnership.setSiringWithId(_matronId, uint32(_sireId));
