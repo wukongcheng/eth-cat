@@ -252,21 +252,6 @@ contract KittyBreeding is KittyAccessControl {
         kittyOwnership = candidateContract;
     }
     
-    function getKitty(uint256 _tokenId) public view returns (Kitty) {
-        var (genes,birthTime,cooldownEndBlock,matronId,sireId,siringWithId,cooldownIndex,generation) = kittyOwnership.getKitty(_tokenId);
-        return Kitty(
-            uint256(genes),
-            uint64(birthTime),
-            uint64(cooldownEndBlock),
-            uint32(matronId),
-            uint32(sireId),
-            uint32(siringWithId),
-            uint16(cooldownIndex),
-            uint16(generation),
-            0
-        );
-    }
-
     function _isSiringPermitted(uint256 _sireId, uint256 _matronId) internal view returns (bool) {
         address matronOwner = kittyOwnership.ownerOf(_matronId);
         address sireOwner = kittyOwnership.ownerOf(_sireId);

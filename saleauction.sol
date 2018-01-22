@@ -48,22 +48,97 @@ contract Ownable {
   }
 }
 
-contract GeneScienceInterface {
-    function isGeneScience() public pure returns (bool);
-    function mixGenes(uint256 genes1, uint256 genes2, uint256 targetBlock) public returns (uint256);
+
+contract GeneScience {
+    function random() internal view returns (uint256);
+    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function getCoolDown(uint256 genes) external view returns (uint16);
 }
 
 contract KittyAccessControl {
     
     event ContractUpgrade(address newContract);
-    
-    function setCEO(address _newCEO) external;
-    function setCFO(address _newCFO) external;
-    function setCOO(address _newCOO) external;
-    function pause() external;
-    function unpause() public;
+
+    // The addresses of the accounts (or contracts) that can execute actions within each roles.
+    address public ceoAddress;
+    address public cfoAddress;
+    address public cooAddress;
+
+    // @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
+    bool public paused = false;
+
+    /// @dev Access modifier for CEO-only functionality
+    modifier onlyCEO() {
+        require(msg.sender == ceoAddress);
+        _;
+    }
+
+    /// @dev Access modifier for CFO-only functionality
+    modifier onlyCFO() {
+        require(msg.sender == cfoAddress);
+        _;
+    }
+
+    /// @dev Access modifier for COO-only functionality
+    modifier onlyCOO() {
+        require(msg.sender == cooAddress);
+        _;
+    }
+
+    modifier onlyCLevel() {
+        require(msg.sender == cooAddress || msg.sender == ceoAddress || msg.sender == cfoAddress);
+        _;
+    }
+
+    function KittyAccessControl() public {
+        ceoAddress = msg.sender;
+    }
+
+    function setCEO(address _newCEO) external onlyCEO {
+        require(_newCEO != address(0));
+
+        ceoAddress = _newCEO;
+    }
+
+    function setCFO(address _newCFO) external onlyCEO {
+        require(_newCFO != address(0));
+
+        cfoAddress = _newCFO;
+    }
+
+    function setCOO(address _newCOO) external onlyCEO {
+        require(_newCOO != address(0));
+
+        cooAddress = _newCOO;
+    }
+
+    /*** Pausable functionality adapted from OpenZeppelin ***/
+    modifier whenNotPaused() {
+        require(!paused);
+        _;
+    }
+
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    function pause() external onlyCLevel whenNotPaused {
+        paused = true;
+    }
+
+    function unpause() public onlyCEO whenPaused {
+        // can't unpause if contract was upgraded
+        paused = false;
+    }
 }
 
+contract GeneScienceInterface {
+    function isGeneScience() public pure returns (bool);
+    function mixGenes(uint256 genes1, uint256 genes2, uint256 targetBlock) public returns (uint256);
+}
 
 contract KittyBase is KittyAccessControl {
     /*** EVENTS ***/
@@ -89,8 +164,8 @@ contract KittyBase is KittyAccessControl {
 
 contract KittyOwnership is KittyBase, ERC721 {
 
-    function _owns(address _claimant, uint256 _tokenId) internal view returns (bool);
-    function _approvedFor(address _claimant, uint256 _tokenId) internal view returns (bool);
+    function _owns(address _claimant, uint256 _tokenId) public view returns (bool);
+    function _approvedFor(address _claimant, uint256 _tokenId) public view returns (bool);
     function _approve(uint256 _tokenId, address _approved) internal;
     function balanceOf(address _owner) public view returns (uint256 count);
     function transfer(address _to,uint256 _tokenId) external;
@@ -101,49 +176,31 @@ contract KittyOwnership is KittyBase, ERC721 {
     function tokensOfOwner(address _owner) external view returns(uint256[] ownerTokens);
     function _memcpy(uint _dest, uint _src, uint _len) private pure ;
     function _toString(bytes32[4] _rawBytes, uint256 _stringLength) private pure returns (string);
-}
-
-contract KittyBreeding is KittyOwnership {
-
-    event Pregnant(address owner, uint256 matronId, uint256 sireId, uint256 cooldownEndBlock);
-
-    function setGeneScienceAddress(address _address) external ;
-    function _isReadyToBreed(Kitty _kit) internal view returns (bool);
-    function _isSiringPermitted(uint256 _sireId, uint256 _matronId) internal view returns (bool);
-    function _triggerCooldown(Kitty storage _kitten) internal;
-    function approveSiring(address _addr, uint256 _sireId) external;
-    function setAutoBirthFee(uint256 val) external ;
-    function _isReadyToGiveBirth(Kitty _matron) private view returns (bool);
-    function isReadyToBreed(uint256 _kittyId) public view returns (bool);
-    function isPregnant(uint256 _kittyId) public view returns (bool);
-    function _isValidMatingPair(Kitty storage _matron,uint256 _matronId,Kitty storage _sire,uint256 _sireId) private view returns(bool);
-    function _canBreedWithViaAuction(uint256 _matronId, uint256 _sireId) internal view returns (bool);
-    function canBreedWith(uint256 _matronId, uint256 _sireId) external view returns(bool);
-    function _breedWith(uint256 _matronId, uint256 _sireId) internal;
-    function breedWithAuto(uint256 _matronId, uint256 _sireId) external;
-    function giveBirth(uint256 _matronId) external returns(uint256);
-}
-
-contract KittyAuction is KittyBreeding {
-
-    function setSaleAuctionAddress(address _address) external ;
-    function setSiringAuctionAddress(address _address) external;
-    function createSaleAuction(uint256 _kittyId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration) external;
-    function createSiringAuction(uint256 _kittyId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration) external;
-    function bidOnSiringAuction(uint256 _sireId,uint256 _matronId,uint256 _price) external payable;
-}
-
-contract KittyMinting is KittyAuction {
-
-    function createPromoKitty(uint256 _genes, address _owner) external ;
-    function createGen0Auction(uint256 _genes) external;
-    function _computeNextGen0Price() internal view returns (uint256);
-}
-
-contract KittyCore is KittyMinting {
-    function setNewAddress(address _v2Address) external;
-    function getKitty(uint256 _id) external view returns (bool isGestating,bool isReady,uint256 cooldownIndex,uint256 nextActionAt,uint256 siringWithId,uint256 birthTime,uint256 matronId,uint256 sireId,uint256 generation,uint256 genes);
-    function unpause() public;
+    function getSireAllowedTo(uint256 _tokenId) external view returns (address allowed);
+    function getKitty(uint256 _tokenId) external view returns (
+        uint256 genes,
+        uint256 birthTime,
+        uint256 cooldownEndBlock,
+        uint256 matronId,
+        uint256 sireId,
+        uint256 siringWithId,
+        uint256 cooldownIndex,
+        uint256 generation
+    );
+    function createKitty(
+        uint256 _matronId,
+        uint256 _sireId,
+        uint256 _generation,
+        uint256 _genes,
+        address _owner
+    ) external returns (uint);
+    function setSireAllowedTo(uint256 _tokenId, address _address) external;
+    function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
+    function isReadyToBreed(uint256 _tokenId) external view returns (bool);
+    function setCooldownEndBlock(uint256 _tokenId, uint64 _blocknum) external;
+    function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external;
+    function deleteSireAllowedTo(uint256 _tokenId) external;
+    function deleteSiringWithId(uint256 _tokenId) external;
 }
 
 contract ClockAuctionBase {
