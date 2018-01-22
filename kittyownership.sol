@@ -303,7 +303,12 @@ contract KittyOwnership is KittyBase, ERC721 {
     /// @notice Name and symbol of the non fungible token, as defined in ERC721.
     string public constant name = "CryptoKitties";
     string public constant symbol = "CK";
+    address public kittycore;
 
+    function setKittyCoreAddress(address _address) external{
+        kittycore = _address;
+    }
+    
     function _owns(address _claimant, uint256 _tokenId) public view returns (bool) {
         return kittyIndexToOwner[_tokenId] == _claimant;
     }
@@ -317,6 +322,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     function balanceOf(address _owner) public view returns (uint256 count) {
         return ownershipTokenCount[_owner];
     }
+    
     function transfer(
         address _to,
         uint256 _tokenId
@@ -329,7 +335,7 @@ contract KittyOwnership is KittyBase, ERC721 {
         require(_to != address(siringAuction));
 
         // You can only send your own cat.
-        require(_owns(msg.sender, _tokenId));
+        require(_owns(msg.sender, _tokenId) || msg.sender == kittycore);
 
         // Reassign ownership, clear pending approvals, emit Transfer event.
         _transfer(msg.sender, _to, _tokenId);
@@ -342,7 +348,7 @@ contract KittyOwnership is KittyBase, ERC721 {
         external
     {
         // Only an owner can grant transfer approval.
-        require(_owns(msg.sender, _tokenId));
+        require(_owns(msg.sender, _tokenId) || msg.sender == kittycore);
 
         // Register the approval (replacing any previous approval).
         _approve(_tokenId, _to);
