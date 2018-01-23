@@ -262,8 +262,8 @@ contract KittyBase is KittyAccessControl {
         require(_generation == uint256(uint16(_generation)));
 
         // The cooldown is decided by genes
-        //uint16 cooldownIndex = geneScience.getCoolDown(_genes);
-        uint16 cooldownIndex = 5;
+        uint16 cooldownIndex = geneScience.getCoolDown(_genes);
+        //uint16 cooldownIndex = 5;
         
         Kitty memory _kitty = Kitty({
             genes: _genes,
@@ -511,8 +511,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         }
     }
 
-    function testGene() external view returns (uint256) {
-        //return geneScience.getCoolDown(256);
-        return 22;
+    function testGene() external view returns (uint16) {
+        return geneScience.getCoolDown(256);
+        //return 22;
     }
 }
