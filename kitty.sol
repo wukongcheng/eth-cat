@@ -279,9 +279,6 @@ contract KittyAuction is KittyAccessControl {
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
-        
-        // start with the mythical kitten 0 - so we don't have generation-0 parent issues
-        //kittyOwnership.createKitty(0, 0, 0, uint256(-1), msg.sender);
     }
     
     function setBreeding(address _address) external onlyCEO {
