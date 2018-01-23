@@ -245,6 +245,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external;
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
+    function testGene() external view returns (uint256);
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -280,7 +281,7 @@ contract KittyAuction is KittyAccessControl {
         kittyOwnership = candidateContract;
         
         // start with the mythical kitten 0 - so we don't have generation-0 parent issues
-        kittyOwnership.createKitty(0, 0, 0, uint256(-1), address(0));
+        //kittyOwnership.createKitty(0, 0, 0, uint256(-1), msg.sender);
     }
     
     function setBreeding(address _address) external onlyCEO {
@@ -394,8 +395,8 @@ contract KittyMinting is KittyAuction {
     uint256 public constant GEN0_AUCTION_DURATION = 1 days;
 
     // Counts the number of cats the contract owner has created.
-    uint256 public promoCreatedCount;
-    uint256 public gen0CreatedCount;
+    uint256 public promoCreatedCount = 0;
+    uint256 public gen0CreatedCount = 0;
 
     /// @dev we can create promo kittens, up to a limit. Only callable by COO
     /// @param _genes the encoded genes of the kitten to be created, any value is accepted
@@ -409,6 +410,14 @@ contract KittyMinting is KittyAuction {
 
         promoCreatedCount++;
         kittyOwnership.createKitty(0, 0, 0, _genes, kittyOwner);
+    }
+
+    function testKittyOwnership() external view returns (uint256) {
+        return kittyOwnership.testGene();
+    }
+
+    function getKittyOwnership() external view returns (address) {
+        return address(kittyOwnership);
     }
 
     /// @dev Creates a new gen0 kitty with the given genes and

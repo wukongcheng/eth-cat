@@ -55,19 +55,19 @@ Contract mined! address: 0x25cbcc6852397a25d32f5c543ef8347468d9d663 transactionH
 ### 根据各个合约部署后的地址以及ABI创建各自的访问代理对象：
 
 ```
-kittycore = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+kittycore = web3.eth.contract(...).at("0x6b2f86804f9464e9ab684edb7706b5ff5709f6ac");
 
-kittyownership = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+kittyownership = web3.eth.contract(...).at("0x25cbcc6852397a25d32f5c543ef8347468d9d663");
 
-kittybreeding = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+kittybreeding = web3.eth.contract(...).at("0x4bb9ae4b88d91830e66b4a3d08add5be6a64997e");
 
-saleAuction = web3.eth.contract(...).at("0xb9bc498e7711aca691c86db8a4369eb60949e922");
+saleAuction = web3.eth.contract(...).at("0x9851d10171a861142c96488896d9428fe0033cde");
 
-siringAuction = web3.eth.contract(...).at("0xcaaa498e7711aca691aca69a4369eb601aca69aa");
+siringAuction = web3.eth.contract(...).at("0x4ba0c2687a46dbbafeb73a930ff18eac47518e75");
 
-ckToken = web3.eth.contract(...).at("0xcafsfdsf69sdfdfdfdf369dsfcewrt434bdfg");
+ckToken = web3.eth.contract(...).at("0x12e239ae3b2ebd8ea26e1769b1bc62c1671345ff");
 
-gene = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
+gene = web3.eth.contract(...).at("0x4b08d945a402823a0818067faa0041a6d6ca5167");
 
 ```
 
@@ -76,7 +76,7 @@ gene = web3.eth.contract(...).at("0xcerdvsdfa69sdfsdffdf369dsf3dt434bdfg");
 #### kittycore
 
 ```
-kittycore.setKittyOwnership.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+kittycore.setKittyOwnership.sendTransaction("0x25cbcc6852397a25d32f5c543ef8347468d9d663", {from:eth.accounts[0], gas:900000});
 
 kittycore.setBreeding.sendTransaction(kittybreedingAddress, {from:eth.accounts[0], gas:900000});
 
@@ -90,9 +90,9 @@ kittycore.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:et
 
 ```
 
-kittyownership.setGeneScienceAddress.sendTransaction(geneScienceAddress, {from:eth.accounts[0], gas:900000});
+kittyownership.setGeneScienceAddress.sendTransaction("0x4b08d945a402823a0818067faa0041a6d6ca5167", {from:eth.accounts[0], gas:900000});
 
-kittyownership.setKittyCoreAddress.sendTransaction(kittycoreAddress, {from:eth.accounts[0], gas:900000});
+kittyownership.setKittyCoreAddress.sendTransaction("0x0ce4607e0767ddc0c5f54dd371d61028ed4f0d81", {from:eth.accounts[0], gas:900000});
 
 ```
 
@@ -109,20 +109,20 @@ kittybreeding.setKittyOwnership.sendTransaction(kittyownershipAddress, {from:eth
 #### saleAuction
 
 ```
-saleAuction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+saleclockauction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
 
-saleAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+saleclockauction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
 
 ```
 
 #### siringAuction
 
 ```
-siringAuction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
+siringclockauction.setERC721Address.sendTransaction(kittyownershipAddress, {from:eth.accounts[0], gas:900000});
 
-siringAuction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
+siringclockauction.setERC20Address.sendTransaction(ckTokenAddress, {from:eth.accounts[0], gas:900000});
 
-siringAuction.setKittyBreedingAddress.sendTransaction(kittybreedingAddress, {from:eth.accounts[0], gas:900000});
+siringclockauction.setKittyBreedingAddress.sendTransaction(kittybreedingAddress, {from:eth.accounts[0], gas:900000});
 
 ```
 
@@ -130,9 +130,9 @@ siringAuction.setKittyBreedingAddress.sendTransaction(kittybreedingAddress, {fro
 
 ```
 
-ckToken.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
+cktoken.setSaleAuctionAddress.sendTransaction(saleAuctionAddress, {from:eth.accounts[0], gas:900000});
 
-ckToken.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
+cktoken.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.accounts[0], gas:900000});
 
 ```
 
@@ -142,11 +142,22 @@ ckToken.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.
 
 ```
 
-kittycore.createPromoKitty.sendTransaction(256, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:900000});
 
 kittyownership.getHisFirstKitty(eth.accounts[0]);
 
 kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+
+
+kittyownership.setGeneScienceAddress.sendTransaction("0x4b08d945a402823a0818067faa0041a6d6ca5167", {from:eth.accounts[0], gas:900000});
+genescience.getCoolDown(256);
+kittyownership.testGene();
+kittyownership.createKitty.sendTransaction(0, 0, 0, 256, 0, {from:eth.accounts[0], gas:900000});
+kittyownership.getKitty(1);
+
+kittycore.setKittyOwnership.sendTransaction("0x25cbcc6852397a25d32f5c543ef8347468d9d663", {from:eth.accounts[0], gas:900000});
+kittycore.testKittyOwnership();
+
 
 ```
 
