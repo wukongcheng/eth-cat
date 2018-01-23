@@ -142,22 +142,19 @@ cktoken.setSiringAuctionAddress.sendTransaction(siringAuctionAddress, {from:eth.
 
 ```
 
-kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:900000});
-
-kittyownership.getHisFirstKitty(eth.accounts[0]);
-
-kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
-
-
-kittyownership.setGeneScienceAddress.sendTransaction("0x4b08d945a402823a0818067faa0041a6d6ca5167", {from:eth.accounts[0], gas:900000});
 genescience.getCoolDown(256);
+kittyownership.setGeneScienceAddress.sendTransaction("0x81e88424fd42e414e1a2c959751537516d4bb836", {from:eth.accounts[0], gas:9000000});
 kittyownership.testGene();
-kittyownership.createKitty.sendTransaction(0, 0, 0, 256, 0, {from:eth.accounts[0], gas:900000});
-kittyownership.getKitty(1);
+kittyownership.createKitty.sendTransaction(0, 0, 0, 256, 0, {from:eth.accounts[0], gas:9000000});
+kittyownership.getKitty(0);
 
-kittycore.setKittyOwnership.sendTransaction("0x25cbcc6852397a25d32f5c543ef8347468d9d663", {from:eth.accounts[0], gas:900000});
+kittycore.setKittyOwnership.sendTransaction("0xede430c53047a83c3351b00a4454de719314cb32", {from:eth.accounts[0], gas:9000000});
 kittycore.testKittyOwnership();
 
+kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittyownership.getHisFirstKitty(eth.accounts[0]);
+kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+kittyownership.getHisFirstKitty(eth.accounts[1]);
 
 ```
 
