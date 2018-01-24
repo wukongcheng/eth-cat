@@ -151,9 +151,9 @@ kittyownership.getKitty(0);
 kittycore.setKittyOwnership.sendTransaction("0xede430c53047a83c3351b00a4454de719314cb32", {from:eth.accounts[0], gas:9000000});
 kittycore.testKittyOwnership();
 
-kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:9000000});
 kittyownership.getHisFirstKitty(eth.accounts[0]);
-kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:9000000});
 kittyownership.getHisFirstKitty(eth.accounts[1]);
 
 ```
@@ -162,8 +162,7 @@ kittyownership.getHisFirstKitty(eth.accounts[1]);
 
 ```
 
-kittycore.createGen0Auction.sendTransaction(256, {from:eth.accounts[0], gas:900000});
-
+kittycore.createGen0Auction.sendTransaction(3333, {from:eth.accounts[0], gas:9000000});
 saleAuction.getAuction(1);
 
 ```
@@ -172,7 +171,7 @@ saleAuction.getAuction(1);
 
 ```
 
-kittycore.createSaleAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:900000});
+kittycore.createSaleAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:9000000});
 
 saleAuction.getAuction(2);
 
@@ -182,7 +181,7 @@ saleAuction.getAuction(2);
 
 ```
 
-saleAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:900000});
+saleAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:9000000});
 
 saleAuction.getAuction(2);
 
@@ -192,7 +191,7 @@ saleAuction.getAuction(2);
 
 ```
 
-saleAuction.bid.sendTransaction(2, 20000, {from:eth.accounts[0], gas:900000});
+saleAuction.bid.sendTransaction(2, 20000, {from:eth.accounts[0], gas:9000000});
 
 ```
 
@@ -200,7 +199,7 @@ saleAuction.bid.sendTransaction(2, 20000, {from:eth.accounts[0], gas:900000});
 
 ```
 
-kittycore.createSiringAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:900000});
+kittycore.createSiringAuction.sendTransaction(2,20000,20, 999999, {from:eth.accounts[0], gas:9000000});
 
 siringAuction.getAuction(2);
 
@@ -210,7 +209,7 @@ siringAuction.getAuction(2);
 
 ```
 
-siringAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:900000});
+siringAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:9000000});
 
 siringAuction.getAuction(2);
 
@@ -220,8 +219,53 @@ siringAuction.getAuction(2);
 
 ```
 
-kittycore.bidOnSiringAuction.sendTransaction(2, 1, 20000, {from:eth.accounts[0], gas:900000});
+kittycore.bidOnSiringAuction.sendTransaction(2, 1, 20000, {from:eth.accounts[0], gas:9000000});
 
 kittyownership.getKitty(3);
 
 ```
+
+
+```
+
+genescience = web3.eth.contract(...).at("0x4b08d945a402823a0818067faa0041a6d6ca5167");
+kittyownership = web3.eth.contract(...).at("0x44c3dd246d11587dbb8acdbdcefddc2a2fda35e3");
+kittycore = web3.eth.contract(...).at("0x90af199d4c0a3ac14194d7b2f9f22627f94db110");
+saleclockauction = web3.eth.contract(...).at("0xe63aed60ddf25601dce11dbd7352e085286445b5");
+
+
+kittybreeding = web3.eth.contract(...).at("0x4bb9ae4b88d91830e66b4a3d08add5be6a64997e");
+siringAuction = web3.eth.contract(...).at("0x4ba0c2687a46dbbafeb73a930ff18eac47518e75");
+ckToken = web3.eth.contract(...).at("0x12e239ae3b2ebd8ea26e1769b1bc62c1671345ff");
+
+
+```
+
+genescience.getCoolDown(256);
+kittyownership.setGeneScienceAddress.sendTransaction("0x4b08d945a402823a0818067faa0041a6d6ca5167", {from:eth.accounts[0], gas:9000000});
+kittyownership.testGene();
+kittyownership.createKitty.sendTransaction(0, 0, 0, 256, 0, {from:eth.accounts[0], gas:9000000});
+kittyownership.getKitty(0);
+
+kittycore.setKittyOwnership.sendTransaction("0xede430c53047a83c3351b00a4454de719314cb32", {from:eth.accounts[0], gas:9000000});
+kittycore.testKittyOwnership();
+kittycore.getKittyOwnership();
+
+kittycore.createPromoKitty.sendTransaction(2222, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittyownership.getHisFirstKitty(eth.accounts[0]);
+kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0], gas:900000});
+kittyownership.getHisFirstKitty(eth.accounts[1]);
+
+
+
+```
+
+kittycore.setKittyOwnership.sendTransaction("0xede430c53047a83c3351b00a4454de719314cb32", {from:eth.accounts[0], gas:9000000});
+kittyownership.setKittyCoreAddress.sendTransaction("0xd9d0f026ebc48f9a1398894fa6788b8b5574c8dc", {from:eth.accounts[0], gas:9000000});
+kittycore.setSaleAuctionAddress.sendTransaction("0xe63aed60ddf25601dce11dbd7352e085286445b5", {from:eth.accounts[0], gas:9000000});
+saleclockauction.setERC721Address.sendTransaction("0xede430c53047a83c3351b00a4454de719314cb32", {from:eth.accounts[0], gas:9000000});
+saleclockauction.setKittyCoreAddress.sendTransaction("0xd9d0f026ebc48f9a1398894fa6788b8b5574c8dc", {from:eth.accounts[0], gas:9000000});
+
+kittycore.createGen0Auction.sendTransaction(5555, {from:eth.accounts[0], gas:9000000});
+kittyownership.getKitty(4);
+saleclockauction.getAuction(4);

@@ -10,11 +10,11 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
 contract ClockAuctionBase {
+
     struct Auction {
         address seller;
         uint128 startingPrice;
@@ -22,7 +22,7 @@ contract ClockAuctionBase {
         uint64 duration;
         uint64 startedAt;
     }
-    
+
     event AuctionCreated(uint256 tokenId, uint256 startingPrice, uint256 endingPrice, uint256 duration);
     event AuctionSuccessful(uint256 tokenId, uint256 totalPrice, address winner);
     event AuctionCancelled(uint256 tokenId);
@@ -30,22 +30,68 @@ contract ClockAuctionBase {
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool);
     function _escrow(address _owner, uint256 _tokenId) internal;
     function _transfer(address _receiver, uint256 _tokenId) internal;
-    function _addAuction(uint256 _tokenId, Auction _auction) internal;
-    function _cancelAuction(uint256 _tokenId, address _seller) internal;
-    function _bid(uint256 _tokenId, uint256 _bidAmount) internal returns (uint256);
-    function _removeAuction(uint256 _tokenId) internal;
-    function _isOnAuction(Auction storage _auction) internal view returns (bool);
-    function _currentPrice(Auction storage _auction) internal view returns (uint256);
-    function _computeCurrentPrice(uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,uint256 _secondsPassed) internal pure returns (uint256);
+    function _addAuction(uint256 _tokenId, Auction _auction) internal ;
+    function _cancelAuction(uint256 _tokenId, address _seller) internal ;
+    function _bid(uint256 _tokenId, uint256 _bidAmount)
+        internal
+        returns (uint256);
+    function _removeAuction(uint256 _tokenId) internal ;
+    function _isOnAuction(Auction storage _auction) internal view returns (bool) ;
+
+    function _currentPrice(Auction storage _auction)
+        internal
+        view
+        returns (uint256);
+
+    function _computeCurrentPrice(
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        uint256 _secondsPassed
+    )
+        internal
+        pure
+        returns (uint256);
 }
 
 contract ClockAuction is ClockAuctionBase {
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
+
     function cancelAuction(uint256 _tokenId) external;
-    function getAuction(uint256 _tokenId) external view returns(address seller,uint256 startingPrice,uint256 endingPrice,uint256 duration,uint256 startedAt);
-    function isOnAuction(uint256 _tokenId) external view returns (bool);
+    function getAuction(uint256 _tokenId)
+        external
+        view
+        returns
+    (
+        address seller,
+        uint256 startingPrice,
+        uint256 endingPrice,
+        uint256 duration,
+        uint256 startedAt
+    );
+
+    function isOnAuction(uint256 _tokenId)
+        external
+        view
+        returns (bool);
     function getCurrentPrice(uint256 _tokenId) external view returns (uint256);
+
+}
+
+contract SaleClockAuction is ClockAuction {
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyCoreAddress(address _address) external;
+    function testAuction() external pure returns (uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price) external;
+    function averageGen0SalePrice() external view returns (uint256);
+
 }
 
 contract SiringClockAuction is ClockAuction {
@@ -54,13 +100,6 @@ contract SiringClockAuction is ClockAuction {
     function cancelAuction(uint256 _tokenId) external;
     function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
     function bid(uint256 _sireId, uint256 _matronId, uint256 _price) external returns(uint256);
-}
-
-contract SaleClockAuction is ClockAuction {
-
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
-    function averageGen0SalePrice() external view returns (uint256);
 }
 
 contract Ownable {
@@ -83,11 +122,11 @@ contract Ownable {
 }
 
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
 }
 
 contract KittyAccessControl {
@@ -302,10 +341,9 @@ contract KittyBase is KittyAccessControl {
 }
 
 contract KittyOwnership is KittyBase, ERC721 {
-
-    /// @notice Name and symbol of the non fungible token, as defined in ERC721.
-    string public constant name = "CryptoKitties";
-    string public constant symbol = "CK";
+    
+    string public constant name = "ETH-CAT";
+    string public constant symbol = "EC";
     address public kittycore;
 
     function setKittyCoreAddress(address _address) external{

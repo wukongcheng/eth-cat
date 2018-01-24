@@ -11,7 +11,9 @@ contract GeneScience {
     
     function GeneScience() public {
         _startTime = now;
-        
+    }
+
+    function init_attribute() external {
         _attribute[0] = [47];                               // 是否EXCLUSIVE
         _attribute[1] = [117];                              // 是否FANCY
         _attribute[2] = [107,101,12,8];                     // FANCY属性
@@ -33,7 +35,9 @@ contract GeneScience {
         _attribute[18] = [104,37];                          // 智商
         _attribute[19] = [83,14];                           // 体力
         _attribute[20] = [121,11];                          // 技能
-        
+    }
+
+    function init_mixrule() external {
         _attribute_mixrule[0] = [3];
         _attribute_mixrule[1] = [6];
         _attribute_mixrule[2] = [1,2];
@@ -55,7 +59,9 @@ contract GeneScience {
         _attribute_mixrule[18] = [1,2];
         _attribute_mixrule[19] = [1,2];
         _attribute_mixrule[20] = [1,2];
+    }
 
+    function init_rate() external {
         _variation_rate[0] = 0;
         _variation_rate[1] = 1;
         _variation_rate[2] = 100;
@@ -77,7 +83,9 @@ contract GeneScience {
         _variation_rate[18] = 100;
         _variation_rate[19] = 100;
         _variation_rate[20] = 100;
+    }
 
+    function init_rate_distribution() external {
         _variation_rate_distribution[0] = [10000,0];                              // 是否EXCLUSIVE
         _variation_rate_distribution[1] = [10000,0];                              // 是否FANCY
         _variation_rate_distribution[2] = [2500,2500,2500,2500];                     	// FANCY属性
