@@ -341,10 +341,15 @@ contract KittyBase is KittyAccessControl {
 }
 
 contract KittyOwnership is KittyBase, ERC721 {
-    
+
     string public constant name = "ETH-CAT";
     string public constant symbol = "EC";
     address public kittycore;
+
+    function KittyOwnership() public {
+        ceoAddress = msg.sender;
+        cooAddress = msg.sender;
+    }
 
     function setKittyCoreAddress(address _address) external{
         kittycore = _address;
