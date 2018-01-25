@@ -269,6 +269,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _genes,
         address _owner
     ) external returns (uint);
+    function setSaleAuctionAddress(address _address) external;
+    function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
     function setSireAllowedTo(uint256 _tokenId, address _address) external;
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
     function isReadyToBreed(uint256 _tokenId) external view returns (bool);
@@ -444,27 +446,51 @@ contract KittyMinting is KittyAuction {
         return kittyOwnership.testGene();
     }
 
+    function testSaleAuction() external view returns (uint256) {
+        return saleAuction.testAuction();
+    }
+    
+    function testParam() external view returns (uint256) {
+        return gen0CreatedCount;
+    }
+
+    function testCreateAuction(uint256 kittyId) external {
+        saleAuction.createAuction(
+            kittyId,
+            5000,
+            20,
+            99999,
+            address(this)
+        );
+    }
+
     function getKittyOwnership() external view returns (address) {
         return address(kittyOwnership);
     }
 
-    /// @dev Creates a new gen0 kitty with the given genes and
-    ///  creates an auction for it.
-    function createGen0Auction(uint256 _genes) external onlyCOO {
+    /// @dev Creates a new gen0 kitty with the given genes
+    function createGen0Kitty(uint256 _genes) external {
         require(gen0CreatedCount < GEN0_CREATION_LIMIT);
+        gen0CreatedCount++;
 
-        uint256 kittyId = kittyOwnership.createKitty(0, 0, 0, _genes, address(this));
-        kittyOwnership.approve(saleAuction, kittyId);
+        kittyOwnership.createGen0Kitty(_genes, cooAddress);
+    }
+
+    function createGen0SaleAuction(uint256 _kittyId) external onlyCOO
+    {
+        require(kittyOwnership._owns(msg.sender, _kittyId));
+
+        var (,,,,,,,generation) = kittyOwnership.getKitty(_kittyId);
+        require(generation == 0);
 
         saleAuction.createAuction(
-            kittyId,
+            _kittyId,
             _computeNextGen0Price(),
             0,
             GEN0_AUCTION_DURATION,
             address(this)
         );
 
-        gen0CreatedCount++;
     }
 
     /// @dev Computes the next gen0 auction starting price, given
