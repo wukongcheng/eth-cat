@@ -179,6 +179,8 @@ kittybreeding.isPregnant(1)
 
 kittycore.setBreeding.sendTransaction("0x0de43ad61c0ee5d4ef0f7aa01261f23db1a77f85", {from:eth.accounts[0], gas:900000});
 kittycore.createPromoKitty.sendTransaction(266, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+
+kittyownership.approveToSaleAuction.sendTransaction(1, {from:eth.accounts[0], gas:9000000});
 kittycore.createSaleAuction.sendTransaction(1,2000,20,99999,  {from:eth.accounts[0], gas:9000000});
 saleclockauction.getAuction(1);
 
