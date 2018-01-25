@@ -342,7 +342,6 @@ contract KittyAuction is KittyAccessControl {
         require(kittyOwnership._owns(msg.sender, _kittyId));
         require(!kittyBreeding.isPregnant(_kittyId));
         require(!saleAuction.isOnAuction(_kittyId));
-        //kittyOwnership.approve(saleAuction,_kittyId);
 
         saleAuction.createAuction(
             _kittyId,

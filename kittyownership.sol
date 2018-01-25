@@ -419,6 +419,14 @@ contract KittyOwnership is KittyBase, ERC721 {
         Approval(msg.sender, _to, _tokenId);
     }
 
+
+    function approveToSaleAuction(uint256 _tokenId) external 
+    {
+        require(_owns(msg.sender, _tokenId));
+        _approve(_tokenId, address(saleAuction));
+        Approval(msg.sender, address(saleAuction), _tokenId);
+    }
+
     function transferFrom(
         address _from,
         address _to,

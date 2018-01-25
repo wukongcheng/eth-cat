@@ -422,8 +422,8 @@ contract SaleClockAuction is ClockAuction {
         require(_endingPrice == uint256(uint128(_endingPrice)));
         require(_duration == uint256(uint64(_duration)));
 
-        // require(msg.sender == kittycore);
-        // _escrow(_seller, _tokenId);
+        require(msg.sender == kittycore);
+        _escrow(_seller, _tokenId);
         Auction memory auction = Auction(
             _seller,
             uint128(_startingPrice),
