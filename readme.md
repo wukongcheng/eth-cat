@@ -190,9 +190,8 @@ saleclockauction.getAuction(1);
 
 ```
 
-saleAuction.cancelAuction.sendTransaction(2, {from:eth.accounts[0], gas:9000000});
-
-saleAuction.getAuction(2);
+saleclockauction.cancelAuction.sendTransaction(1, {from:eth.accounts[0], gas:9000000});
+saleAuction.getAuction(1);
 
 ```
 
@@ -297,5 +296,7 @@ kittyownership.approveToSaleAuction.sendTransaction(1, {from:eth.accounts[0], ga
 kittycore.createSaleAuction.sendTransaction(1,2000,20,99999,  {from:eth.accounts[0], gas:9000000});
 saleclockauction.getAuction(1);
 
+saleclockauction.cancelAuction.sendTransaction(1, {from:eth.accounts[0], gas:9000000});
+saleclockauction.getAuction(1);
 
 ```
