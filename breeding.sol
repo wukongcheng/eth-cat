@@ -199,6 +199,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
     function testGene() external view returns (uint256);
+    function approveToSaleAuction(uint256 _tokenId) external;
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -243,7 +244,7 @@ contract KittyBreeding is KittyAccessControl {
         GeneScience candidateContract = GeneScience(_address);
         geneScience = candidateContract;
     }
-    
+
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
