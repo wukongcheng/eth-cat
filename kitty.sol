@@ -338,14 +338,12 @@ contract KittyAuction is KittyAccessControl {
         uint256 _duration
     )
         external
-        whenNotPaused
     {
         require(kittyOwnership._owns(msg.sender, _kittyId));
         require(!kittyBreeding.isPregnant(_kittyId));
         require(!saleAuction.isOnAuction(_kittyId));
-        kittyOwnership.approve(saleAuction,_kittyId);
-        // Sale auction throws if inputs are invalid and clears
-        // transfer and sire approval after escrowing the kitty.
+        //kittyOwnership.approve(saleAuction,_kittyId);
+
         saleAuction.createAuction(
             _kittyId,
             _startingPrice,

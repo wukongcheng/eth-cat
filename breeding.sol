@@ -1,20 +1,5 @@
 pragma solidity ^0.4.18;
 
-contract ERC20 {
-    function totalSupply() public constant returns (uint supply);
-    function balanceOf( address who ) public constant returns (uint value);
-    function allowance( address owner, address spender ) public constant returns (uint _allowance);
-
-    function transfer( address to, uint value) public returns (bool ok);
-    function transferFrom( address from, address to, uint value) public returns (bool ok);
-    function approve( address spender, uint value ) public returns (bool ok);
-    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
-    function getCFO() external returns (address);
-
-    event Transfer( address indexed from, address indexed to, uint value);
-    event Approval( address indexed owner, address indexed spender, uint value);
-}  
-
 contract ERC721 {
     // Required methods
     function totalSupply() public view returns (uint256 total);
@@ -25,7 +10,6 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
@@ -50,11 +34,11 @@ contract Ownable {
 
 
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
 }
 
 contract KittyAccessControl {
@@ -96,18 +80,24 @@ contract KittyAccessControl {
         ceoAddress = msg.sender;
     }
 
+    /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
+    /// @param _newCEO The address of the new CEO
     function setCEO(address _newCEO) external onlyCEO {
         require(_newCEO != address(0));
 
         ceoAddress = _newCEO;
     }
 
+    /// @dev Assigns a new address to act as the CFO. Only available to the current CEO.
+    /// @param _newCFO The address of the new CFO
     function setCFO(address _newCFO) external onlyCEO {
         require(_newCFO != address(0));
 
         cfoAddress = _newCFO;
     }
 
+    /// @dev Assigns a new address to act as the COO. Only available to the current CEO.
+    /// @param _newCOO The address of the new COO
     function setCOO(address _newCOO) external onlyCEO {
         require(_newCOO != address(0));
 
@@ -115,29 +105,34 @@ contract KittyAccessControl {
     }
 
     /*** Pausable functionality adapted from OpenZeppelin ***/
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
     modifier whenNotPaused() {
         require(!paused);
         _;
     }
 
+    /// @dev Modifier to allow actions only when the contract IS paused
     modifier whenPaused {
         require(paused);
         _;
     }
 
+    /// @dev Called by any "C-level" role to pause the contract. Used only when
+    ///  a bug or exploit is detected and we need to limit damage.
     function pause() external onlyCLevel whenNotPaused {
         paused = true;
     }
 
+    /// @dev Unpauses the smart contract. Can only be called by the CEO, since
+    ///  one reason we may pause the contract is when CFO or COO accounts are
+    ///  compromised.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
     function unpause() public onlyCEO whenPaused {
         // can't unpause if contract was upgraded
         paused = false;
     }
-}
-
-contract GeneScienceInterface {
-    function isGeneScience() public pure returns (bool);
-    function mixGenes(uint256 genes1, uint256 genes2, uint256 targetBlock) public returns (uint256);
 }
 
 contract KittyBase is KittyAccessControl {
@@ -194,6 +189,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _genes,
         address _owner
     ) external returns (uint);
+    function setSaleAuctionAddress(address _address) external;
+    function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
     function setSireAllowedTo(uint256 _tokenId, address _address) external;
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
     function isReadyToBreed(uint256 _tokenId) external view returns (bool);
@@ -201,6 +198,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external;
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
+    function testGene() external view returns (uint256);
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -245,7 +243,6 @@ contract KittyBreeding is KittyAccessControl {
         GeneScience candidateContract = GeneScience(_address);
         geneScience = candidateContract;
     }
-
     
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
