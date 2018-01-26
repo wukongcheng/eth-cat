@@ -8,7 +8,7 @@ contract ERC20 {
     function transfer( address to, uint value) public returns (bool ok);
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
-    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
+    function transferByAuction(address bidder, address seller, uint price, uint fee) public returns (bool);
     function getCFO() external returns (address);
 
     event Transfer( address indexed from, address indexed to, uint value);
@@ -276,13 +276,7 @@ contract ClockAuctionBase {
         uint256 price = _currentPrice(auction);
         require(_bidAmount >= price);
 
-        address seller = auction.seller;
-
         _removeAuction(_tokenId);
-
-        // uint256 fee = uint256(_bidAmount * 3 / 80);
-        // niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
-        // niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
 
         AuctionSuccessful(_tokenId, _bidAmount, msg.sender);
 
@@ -450,16 +444,20 @@ contract SaleClockAuction is ClockAuction {
         require(seller != address(0));
         require(msg.sender != seller);
 
-        uint256 price = _bid(_tokenId, _price);
-        // _transfer(msg.sender, _tokenId);
+        _bid(_tokenId, _price);
+        
+        // If not a gen0 auction, exit
+        var (,,,,,,,generation) = kittyOwnership.getKitty(_tokenId);
+        if (generation == 0) {
+            // Track gen0 sale prices
+            lastGen0SalePrices[gen0SaleCount % 5] = _price;
+            gen0SaleCount++;
+        }
 
-        // // If not a gen0 auction, exit
-        // var (,,,,,,,generation) = kittyOwnership.getKitty(_tokenId);
-        // if (generation == 0) {
-        //     // Track gen0 sale prices
-        //     lastGen0SalePrices[gen0SaleCount % 5] = price;
-        //     gen0SaleCount++;
-        // }
+        _transfer(msg.sender, _tokenId);
+
+        uint256 fee = uint256(_price * 3 / 80);
+        niuTokenContract.transferByAuction(msg.sender, seller, _price, fee);
     }
 
     function averageGen0SalePrice() external view returns (uint256) {

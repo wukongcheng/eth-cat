@@ -9,7 +9,7 @@ contract ERC20 {
     function transfer( address to, uint value) public returns (bool ok);
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
-    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
+    function transferByAuction(address bidder, address seller, uint price, uint fee) public returns (bool);
 
     event Transfer( address indexed from, address indexed to, uint value);
     event Approval( address indexed owner, address indexed spender, uint value);
@@ -69,14 +69,16 @@ contract CKToken is ERC20 {
         return true;
     }
     
-    function transferByAuction(address src, address dst, uint wad) public returns (bool) {
+    function transferByAuction(address bidder, address seller, uint price, uint fee) public returns (bool) {
         assert(msg.sender == _saleAuction || msg.sender == _siringAuction);
-        assert(_balances[src] >= wad);
+        assert(_balances[bidder] >= price);
         
-        _balances[src] = _balances[src] - wad;
-        _balances[dst] = _balances[dst] + wad;
+        _balances[bidder] = _balances[bidder] - price;
+        _balances[seller] = _balances[seller] + price - fee;
+        _balances[_cfo] = _balances[_cfo] + fee;
         
-        Transfer(src, dst, wad);
+        Transfer(bidder, seller, price - fee);
+        Transfer(bidder, _cfo, fee);
         
         return true;
     }

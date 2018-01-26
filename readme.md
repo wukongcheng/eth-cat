@@ -239,9 +239,9 @@ kittyownership.getKitty(3);
 genescience = web3.eth.contract(...).at("0x4b08d945a402823a0818067faa0041a6d6ca5167");
 kittyownership = web3.eth.contract(...).at("0x44c3dd246d11587dbb8acdbdcefddc2a2fda35e3");
 kittycore = web3.eth.contract(...).at("0x0d7130fdbcfd4a8e1ec89e57cb255c51a3eb25e5");
-saleclockauction = web3.eth.contract(...).at("0x1a0ed669be8625323a7ead1442893fba09c9264c");
+saleclockauction = web3.eth.contract(...).at("0xf676df5d4a52d73ed1e1351e1691a64d4ef30b79");
 kittybreeding = web3.eth.contract(...).at("0x6d6112758ec8f5e4637deb749b2ce468487b3043");
-ckToken = web3.eth.contract(...).at("0x1e09ec98b4d295d848e7cda730802619e9c5160d");
+ckToken = web3.eth.contract(...).at("0xf458a25d3eb5e2d22bf37d4e02f1fd2257b13b06");
 
 siringAuction = web3.eth.contract(...).at("0x4ba0c2687a46dbbafeb73a930ff18eac47518e75");
 
@@ -263,8 +263,8 @@ kittyownership.transfer.sendTransaction(eth.accounts[1], 1, {from:eth.accounts[0
 kittyownership.getHisFirstKitty(eth.accounts[1]);
 
 kittyownership.setKittyCoreAddress.sendTransaction("0x0d7130fdbcfd4a8e1ec89e57cb255c51a3eb25e5", {from:eth.accounts[0], gas:9000000});
-kittycore.setSaleAuctionAddress.sendTransaction("0x1a0ed669be8625323a7ead1442893fba09c9264c", {from:eth.accounts[0], gas:9000000});
-kittyownership.setSaleAuctionAddress.sendTransaction("0x1a0ed669be8625323a7ead1442893fba09c9264c", {from:eth.accounts[0], gas:9000000});
+kittycore.setSaleAuctionAddress.sendTransaction("0xf676df5d4a52d73ed1e1351e1691a64d4ef30b79", {from:eth.accounts[0], gas:9000000});
+kittyownership.setSaleAuctionAddress.sendTransaction("0xf676df5d4a52d73ed1e1351e1691a64d4ef30b79", {from:eth.accounts[0], gas:9000000});
 
 saleclockauction.testAuction();
 kittycore.testSaleAuction();
@@ -293,22 +293,24 @@ kittycore.createPromoKitty.sendTransaction(257, eth.accounts[0], {from:eth.accou
 
 ---------------------------------------------------------
 
-kittycore.createPromoKitty.sendTransaction(260, eth.accounts[0], {from:eth.accounts[0], gas:900000});
+kittycore.createPromoKitty.sendTransaction(258, eth.accounts[0], {from:eth.accounts[0], gas:900000});
 kittyownership.getKitty(4);
-kittyownership.approveToSaleAuction.sendTransaction(1, {from:eth.accounts[0], gas:9000000});
-kittyownership._owns(eth.accounts[0], 1)
-kittycore.createSaleAuction.sendTransaction(1,2000,20,99999,  {from:eth.accounts[0], gas:9000000});
-saleclockauction.getAuction(1);
+kittyownership.approveToSaleAuction.sendTransaction(2, {from:eth.accounts[0], gas:9000000});
+kittyownership._owns(eth.accounts[0], 2)
+kittyownership.approveOf(2)
+
+kittycore.createSaleAuction.sendTransaction(2,2000,20,99999,  {from:eth.accounts[0], gas:9000000});
+saleclockauction.getAuction(2);
 
 saleclockauction.cancelAuction.sendTransaction(1, {from:eth.accounts[0], gas:9000000});
 
-cktoken.setSaleAuctionAddress.sendTransaction("0x1a0ed669be8625323a7ead1442893fba09c9264c", {from:eth.accounts[0], gas:9000000});
+cktoken.setSaleAuctionAddress.sendTransaction("0xf676df5d4a52d73ed1e1351e1691a64d4ef30b79", {from:eth.accounts[0], gas:9000000});
 cktoken.transfer.sendTransaction(eth.accounts[1], 10000000, {from:eth.accounts[0], gas:9000000});
 cktoken.balanceOf(eth.accounts[1]);
 
-saleclockauction.setERC20Address.sendTransaction("0x1e09ec98b4d295d848e7cda730802619e9c5160d", {from:eth.accounts[0], gas:9000000});
-saleclockauction.bid.sendTransaction(1, 92000, {from:eth.accounts[1], gas:9000000});
-saleclockauction.getAuction(1);
+saleclockauction.setERC20Address.sendTransaction("0xf458a25d3eb5e2d22bf37d4e02f1fd2257b13b06", {from:eth.accounts[0], gas:9000000});
+saleclockauction.bid.sendTransaction(2, 92000, {from:eth.accounts[1], gas:9000000});
+saleclockauction.getAuction(2);
 
 
 ```
