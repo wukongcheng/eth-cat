@@ -53,6 +53,10 @@ contract GeneScience {
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
     function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
 }
 
 contract KittyAccessControl {
@@ -219,6 +223,7 @@ contract ClockAuctionBase {
 
     ERC721 public nonFungibleContract;
     ERC20 public niuTokenContract;
+    KittyOwnership public kittyOwnership;
     address public kittycore;
 
     // Map from token ID to their corresponding auction.
@@ -275,9 +280,9 @@ contract ClockAuctionBase {
 
         _removeAuction(_tokenId);
 
-        uint256 fee = uint256(_bidAmount * 3 / 80);
-        niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
-        niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
+        // uint256 fee = uint256(_bidAmount * 3 / 80);
+        // niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
+        // niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
 
         AuctionSuccessful(_tokenId, _bidAmount, msg.sender);
 
@@ -396,6 +401,7 @@ contract SaleClockAuction is ClockAuction {
 
     function setERC721Address(address _nftAddress) external {
         nonFungibleContract = ERC721(_nftAddress);
+        kittyOwnership = KittyOwnership(_nftAddress);
     }
 
     function setERC20Address(address _erc20Address) external {
@@ -445,14 +451,15 @@ contract SaleClockAuction is ClockAuction {
         require(msg.sender != seller);
 
         uint256 price = _bid(_tokenId, _price);
-        _transfer(msg.sender, _tokenId);
+        // _transfer(msg.sender, _tokenId);
 
-        // If not a gen0 auction, exit
-        if (seller == address(nonFungibleContract)) {
-            // Track gen0 sale prices
-            lastGen0SalePrices[gen0SaleCount % 5] = price;
-            gen0SaleCount++;
-        }
+        // // If not a gen0 auction, exit
+        // var (,,,,,,,generation) = kittyOwnership.getKitty(_tokenId);
+        // if (generation == 0) {
+        //     // Track gen0 sale prices
+        //     lastGen0SalePrices[gen0SaleCount % 5] = price;
+        //     gen0SaleCount++;
+        // }
     }
 
     function averageGen0SalePrice() external view returns (uint256) {

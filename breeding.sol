@@ -32,13 +32,16 @@ contract Ownable {
   }
 }
 
-
 contract GeneScience {
     function random() internal view returns (uint256) ;
     function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
     function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
 }
 
 contract KittyAccessControl {

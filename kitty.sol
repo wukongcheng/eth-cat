@@ -119,6 +119,10 @@ contract GeneScience {
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
     function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
 }
 
 contract KittyAccessControl {
@@ -415,8 +419,8 @@ contract KittyAuction is KittyAccessControl {
 contract KittyMinting is KittyAuction {
 
     // Limits the number of cats the contract owner can ever create.
-    uint256 public constant PROMO_CREATION_LIMIT = 5000;
-    uint256 public constant GEN0_CREATION_LIMIT = 45000;
+    uint256 public constant PROMO_CREATION_LIMIT = 10000;
+    uint256 public constant GEN0_CREATION_LIMIT = 100000;
 
     // Constants for gen0 auctions.
     uint256 public constant GEN0_STARTING_PRICE = 500;

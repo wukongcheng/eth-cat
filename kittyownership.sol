@@ -127,6 +127,10 @@ contract GeneScience {
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
     function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
 }
 
 contract KittyAccessControl {
@@ -379,6 +383,10 @@ contract KittyOwnership is KittyBase, ERC721 {
     }
     function _approve(uint256 _tokenId, address _approved) internal {
         kittyIndexToApproved[_tokenId] = _approved;
+    }
+
+    function approveOf(uint256 _tokenId) external view returns (address) {
+        return kittyIndexToApproved[_tokenId];
     }
 
     function balanceOf(address _owner) public view returns (uint256 count) {
