@@ -203,6 +203,8 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSiringWithId(uint256 _tokenId) external;
     function testGene() external view returns (uint256);
     function approveToSaleAuction(uint256 _tokenId) external;
+    function setSiringAuctionAddress(address _address) external;
+    function approveToSiringAuction(uint256 _tokenId) external;
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -360,7 +362,7 @@ contract KittyBreeding is KittyAccessControl {
 
     /// @dev Internal utility function to initiate breeding, assumes that all breeding
     ///  requirements have been checked.
-    function _breedWith(uint256 _matronId, uint256 _sireId) public {
+    function _breedWith(uint256 _matronId, uint256 _sireId) internal {
 
         // Mark the matron as pregnant, keeping track of who the sire is.
         kittyOwnership.setSiringWithId(_matronId, uint32(_sireId));
@@ -380,6 +382,8 @@ contract KittyBreeding is KittyAccessControl {
         // Emit the pregnancy event.
         var (,,cooldownEndBlock,,,,,) = kittyOwnership.getKitty(_matronId);
         Pregnant(kittyOwnership.ownerOf(_matronId), _matronId, _sireId, cooldownEndBlock);
+
+        giveBirth(_matronId);
     }
 
     /// @notice Breed a Kitty you own (as matron) with a sire that you own, or for which you
@@ -413,7 +417,7 @@ contract KittyBreeding is KittyAccessControl {
 
   
     function giveBirth(uint256 _matronId)
-        external
+        internal
         returns(uint256)
     {
         var (matron_genes,matron_birthTime,matron_cooldownEndBlock,,,matron_siringWithId,,matron_generation) = kittyOwnership.getKitty(_matronId);

@@ -202,6 +202,8 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSiringWithId(uint256 _tokenId) external;
     function testGene() external view returns (uint256);
     function approveToSaleAuction(uint256 _tokenId) external;
+    function setSiringAuctionAddress(address _address) external;
+    function approveToSiringAuction(uint256 _tokenId) external;
 }
 
 contract ClockAuctionBase {

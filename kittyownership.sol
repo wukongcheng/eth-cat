@@ -96,10 +96,19 @@ contract SaleClockAuction is ClockAuction {
 
 contract SiringClockAuction is ClockAuction {
 
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyBreedingAddress(address _address) external;
     function setKittyCoreAddress(address _address) external;
     function cancelAuction(uint256 _tokenId) external;
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _sireId, uint256 _matronId, uint256 _price) external returns(uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price, uint256 _matronId) external;
 }
 
 contract Ownable {
@@ -361,6 +370,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     string public constant symbol = "EC";
     address public kittycore;
     SaleClockAuction public saleAuction;
+    SiringClockAuction public siringAuction;
 
     function KittyOwnership() public {
         ceoAddress = msg.sender;
@@ -373,6 +383,10 @@ contract KittyOwnership is KittyBase, ERC721 {
 
     function setSaleAuctionAddress(address _address) external {
         saleAuction = SaleClockAuction(_address);
+    }
+
+    function setSiringAuctionAddress(address _address) external {
+        siringAuction = SiringClockAuction(_address);
     }
     
     function _owns(address _claimant, uint256 _tokenId) public view returns (bool) {
@@ -433,6 +447,13 @@ contract KittyOwnership is KittyBase, ERC721 {
         require(_owns(msg.sender, _tokenId));
         _approve(_tokenId, address(saleAuction));
         Approval(msg.sender, address(saleAuction), _tokenId);
+    }
+
+    function approveToSiringAuction(uint256 _tokenId) external 
+    {
+        require(_owns(msg.sender, _tokenId));
+        _approve(_tokenId, address(siringAuction));
+        Approval(msg.sender, address(siringAuction), _tokenId);
     }
 
     function transferFrom(
