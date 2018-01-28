@@ -331,10 +331,10 @@ contract KittyBreeding is KittyAccessControl {
         }
 
         // Kitties can't breed with full or half siblings.
-        if (sire_matronId == matron_matronId || sire_matronId == matron_matronId) {
+        if (sire_matronId == matron_matronId || sire_matronId == matron_sireId) {
             return false;
         }
-        if (sire_sireId == matron_matronId || sire_sireId == matron_matronId) {
+        if (sire_sireId == matron_matronId || sire_sireId == matron_sireId) {
             return false;
         }
 
