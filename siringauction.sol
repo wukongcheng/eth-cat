@@ -13,7 +13,7 @@ contract ERC20 {
 
     event Transfer( address indexed from, address indexed to, uint value);
     event Approval( address indexed owner, address indexed spender, uint value);
-}  
+}
 
 contract ERC721 {
     // Required methods
@@ -60,7 +60,7 @@ contract GeneScience {
 }
 
 contract KittyAccessControl {
-    
+
     event ContractUpgrade(address newContract);
 
     // The addresses of the accounts (or contracts) that can execute actions within each roles.
@@ -142,7 +142,7 @@ contract KittyBase is KittyAccessControl {
     event Birth(address owner, uint256 kittyId, uint256 matronId, uint256 sireId, uint256 genes);
     event Transfer(address from, address to, uint256 tokenId);
 
-    
+
     struct Kitty {
         uint256 genes;
         uint64 birthTime;
@@ -244,6 +244,18 @@ contract ClockAuctionBase {
         uint64 startedAt;
     }
 
+    struct AuctionWinner {
+
+        address seller;
+
+        address winner;
+
+        uint256 matronId;
+
+        uint256 price;
+
+    }
+
     ERC721 public nonFungibleContract;
     ERC20 public niuTokenContract;
     KittyOwnership public kittyOwnership;
@@ -251,6 +263,7 @@ contract ClockAuctionBase {
 
     // Map from token ID to their corresponding auction.
     mapping (uint256 => Auction) tokenIdToAuction;
+    mapping (uint256 => AuctionWinner) tokenIdToBidWinner;
 
     event AuctionCreated(uint256 tokenId, uint256 startingPrice, uint256 endingPrice, uint256 duration);
     event AuctionSuccessful(uint256 tokenId, uint256 totalPrice, address winner);
@@ -381,7 +394,7 @@ contract ClockAuction is ClockAuctionBase {
     function isOnAuction(uint256 _tokenId)
         external
         view
-        returns (bool) 
+        returns (bool)
     {
         Auction storage auction = tokenIdToAuction[_tokenId];
         return _isOnAuction(auction);
@@ -482,13 +495,32 @@ contract SiringClockAuction is ClockAuction {
         _escrow(msg.sender, _matronId);
 
         kittyBreeding.approveSiring(msg.sender, _sireId);
-        kittyBreeding.breedWithAuto(_matronId, _sireId);
 
-        _transfer(seller, _sireId);
-        _transfer(msg.sender, _matronId);
+        AuctionWinner memory winnerInfo = AuctionWinner(
+            seller,
+            msg.sender,
+            _matronId,
+            _price
+        );
+        tokenIdToBidWinner[_sireId]=winnerInfo;
+    }
 
-        uint256 fee = uint256(_price * 3 / 80);
-        niuTokenContract.transferByAuction(msg.sender, seller, _price, fee);
+    function breed(
+        uint256 _sireId)
+        external
+    {
+        AuctionWinner storage winnerInfo = tokenIdToBidWinner[_sireId];
+        require(winnerInfo.winner==msg.sender);
+
+        kittyBreeding.breedWithAuto(winnerInfo.matronId, _sireId);
+
+        _transfer(winnerInfo.seller, _sireId);
+        _transfer(msg.sender, winnerInfo.matronId);
+
+        uint256 fee = uint256(winnerInfo.price * 3 / 80);
+        niuTokenContract.transferByAuction(msg.sender, winnerInfo.seller, winnerInfo.price, fee);
+
+        delete tokenIdToBidWinner[_sireId];
     }
 
 }
