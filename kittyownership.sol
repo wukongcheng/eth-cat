@@ -320,7 +320,8 @@ contract KittyBase is KittyAccessControl {
 
         // The cooldown is decided by genes
         uint16 cooldownIndex = geneScience.getCoolDown(_genes);
-
+        //uint16 cooldownIndex = 5;
+        
         Kitty memory _kitty = Kitty({
             genes: _genes,
             birthTime: uint64(now),
@@ -358,7 +359,7 @@ contract KittyBase is KittyAccessControl {
         // per ERC721 draft
         _transfer(0, _owner, newKittenId);
 
-        return newKittenId;
+        return 0;
     }
 }
 
@@ -657,8 +658,14 @@ contract KittyOwnership is KittyBase, ERC721 {
         }
     }
 
+<<<<<<< HEAD
     function testGene() external view returns (uint16) {
         return geneScience.getCoolDown(256);
         //return 22;
+=======
+    function testGene() external view returns (uint256) {
+        //return geneScience.getCoolDown(256);
+        return 22;
+>>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
     }
 }
