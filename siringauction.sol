@@ -225,7 +225,7 @@ contract KittyBreeding is KittyAccessControl {
     function canBreedWith(uint256 _matronId, uint256 _sireId) external view returns(bool);
     function _breedWith(uint256 _matronId, uint256 _sireId) public;
     function breedWithAuto(uint256 _matronId, uint256 _sireId) external;
-    function giveBirth(uint256 _matronId) external returns(uint256);
+    function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner) external returns(uint256);
 }
 
 contract ClockAuctionBase {
@@ -521,9 +521,9 @@ contract SiringClockAuction is ClockAuction {
         external
     {
         AuctionWinner storage winnerInfo = tokenIdToBidWinner[_sireId];
-        require(winnerInfo.winner==msg.sender);
+        require(winnerInfo.winner == msg.sender);
 
-        kittyBreeding.giveBirth(winnerInfo.matronId,winnerInfo.winner);
+        kittyBreeding.giveBirthByAuction(winnerInfo.matronId, _sireId, winnerInfo.winner);
 
         _transfer(winnerInfo.seller, _sireId);
         _transfer(msg.sender, winnerInfo.matronId);

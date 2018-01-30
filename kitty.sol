@@ -324,7 +324,7 @@ contract KittyBreeding is KittyAccessControl {
     function canBreedWith(uint256 _matronId, uint256 _sireId) external view returns(bool);
     function _breedWith(uint256 _matronId, uint256 _sireId) public;
     function breedWithAuto(uint256 _matronId, uint256 _sireId) external;
-    function giveBirth(uint256 _matronId) external returns(uint256);
+    function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner) external returns(uint256);
 }
 
 contract KittyAuction is KittyAccessControl {

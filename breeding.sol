@@ -241,6 +241,7 @@ contract KittyBreeding is KittyAccessControl {
     uint256 public pregnantKitties;
     KittyOwnership public kittyOwnership;
     GeneScience public geneScience;
+    address public siringaction;
 
     function KittyBreeding() public {
         ceoAddress = msg.sender;
@@ -254,6 +255,10 @@ contract KittyBreeding is KittyAccessControl {
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
+    }
+
+    function setSiringAction(address _address) external onlyCEO {
+        siringaction = _address;
     }
     
     function _isSiringPermitted(uint256 _sireId, uint256 _matronId) internal view returns (bool) {
@@ -417,17 +422,24 @@ contract KittyBreeding is KittyAccessControl {
     }
 
   
-    function giveBirth(uint256 _matronId)
+    function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner)
+        external
+        returns(uint256)
+    {
+        require(msg.sender == siringaction);
+
+        return giveBirth(_matronId, _sireId, _owner);
+    }
+
+    function giveBirth(uint256 _matronId, uint256 _sireId, address _owner)
         internal
         returns(uint256)
     {
-        var (matron_genes,matron_birthTime,matron_cooldownEndBlock,,,matron_siringWithId,,matron_generation,) = kittyOwnership.getKitty(_matronId);
+        
+        var (matron_genes,matron_birthTime,,,,,,matron_generation,) = kittyOwnership.getKitty(_matronId);
         // Check that the matron is a valid cat.
         require(matron_birthTime != 0);
-        // Check that the matron is pregnant, and that its time has come!
-        require(_isReadyToGiveBirth(uint32(matron_siringWithId),uint64(matron_cooldownEndBlock)));
-
-        var (sireId_matron_genes,,,,,,,sireId_generation,) = kittyOwnership.getKitty(matron_siringWithId);
+        var (sireId_genes,,,,,,,sireId_generation,) = kittyOwnership.getKitty(_sireId);
 
         // Determine the higher generation number of the two parents
         uint16 parentGen = uint16(matron_generation);
@@ -436,11 +448,10 @@ contract KittyBreeding is KittyAccessControl {
         }
 
         // Call the sooper-sekret gene mixing operation.
-        uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_matron_genes);
+        uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_genes);
 
         // Make the new kitten!
-        address owner = kittyOwnership.ownerOf(_matronId);
-        uint256 kittenId = kittyOwnership.createKitty(_matronId, matron_siringWithId, parentGen + 1, childGenes, owner);
+        uint256 kittenId = kittyOwnership.createKitty(_matronId, _sireId, parentGen + 1, childGenes, _owner);
 
         // Clear the reference to sire from the matron (REQUIRED! Having siringWithId
         // set is what marks a matron as being pregnant.)
