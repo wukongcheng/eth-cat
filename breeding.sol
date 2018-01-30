@@ -1,20 +1,5 @@
 pragma solidity ^0.4.18;
 
-contract ERC20 {
-    function totalSupply() public constant returns (uint supply);
-    function balanceOf( address who ) public constant returns (uint value);
-    function allowance( address owner, address spender ) public constant returns (uint _allowance);
-
-    function transfer( address to, uint value) public returns (bool ok);
-    function transferFrom( address from, address to, uint value) public returns (bool ok);
-    function approve( address spender, uint value ) public returns (bool ok);
-    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
-    function getCFO() external returns (address);
-
-    event Transfer( address indexed from, address indexed to, uint value);
-    event Approval( address indexed owner, address indexed spender, uint value);
-}  
-
 contract ERC721 {
     // Required methods
     function totalSupply() public view returns (uint256 total);
@@ -25,7 +10,6 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
@@ -48,13 +32,17 @@ contract Ownable {
   }
 }
 
-
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -96,18 +84,24 @@ contract KittyAccessControl {
         ceoAddress = msg.sender;
     }
 
+    /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
+    /// @param _newCEO The address of the new CEO
     function setCEO(address _newCEO) external onlyCEO {
         require(_newCEO != address(0));
 
         ceoAddress = _newCEO;
     }
 
+    /// @dev Assigns a new address to act as the CFO. Only available to the current CEO.
+    /// @param _newCFO The address of the new CFO
     function setCFO(address _newCFO) external onlyCEO {
         require(_newCFO != address(0));
 
         cfoAddress = _newCFO;
     }
 
+    /// @dev Assigns a new address to act as the COO. Only available to the current CEO.
+    /// @param _newCOO The address of the new COO
     function setCOO(address _newCOO) external onlyCEO {
         require(_newCOO != address(0));
 
@@ -115,29 +109,34 @@ contract KittyAccessControl {
     }
 
     /*** Pausable functionality adapted from OpenZeppelin ***/
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
     modifier whenNotPaused() {
         require(!paused);
         _;
     }
 
+    /// @dev Modifier to allow actions only when the contract IS paused
     modifier whenPaused {
         require(paused);
         _;
     }
 
+    /// @dev Called by any "C-level" role to pause the contract. Used only when
+    ///  a bug or exploit is detected and we need to limit damage.
     function pause() external onlyCLevel whenNotPaused {
         paused = true;
     }
 
+    /// @dev Unpauses the smart contract. Can only be called by the CEO, since
+    ///  one reason we may pause the contract is when CFO or COO accounts are
+    ///  compromised.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
     function unpause() public onlyCEO whenPaused {
         // can't unpause if contract was upgraded
         paused = false;
     }
-}
-
-contract GeneScienceInterface {
-    function isGeneScience() public pure returns (bool);
-    function mixGenes(uint256 genes1, uint256 genes2, uint256 targetBlock) public returns (uint256);
 }
 
 contract KittyBase is KittyAccessControl {
@@ -185,15 +184,19 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
+    function setSaleAuctionAddress(address _address) external;
+    function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
     function setSireAllowedTo(uint256 _tokenId, address _address) external;
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
     function isReadyToBreed(uint256 _tokenId) external view returns (bool);
@@ -201,6 +204,10 @@ contract KittyOwnership is KittyBase, ERC721 {
     function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external;
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
+    function testGene() external view returns (uint256);
+    function approveToSaleAuction(uint256 _tokenId) external;
+    function setSiringAuctionAddress(address _address) external;
+    function approveToSiringAuction(uint256 _tokenId) external;
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -236,6 +243,7 @@ contract KittyBreeding is KittyAccessControl {
     uint256 public pregnantKitties;
     KittyOwnership public kittyOwnership;
     GeneScience public geneScience;
+    address public siringaction;
 
     function KittyBreeding() public {
         ceoAddress = msg.sender;
@@ -246,10 +254,13 @@ contract KittyBreeding is KittyAccessControl {
         geneScience = candidateContract;
     }
 
-    
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
+    }
+
+    function setSiringAction(address _address) external onlyCEO {
+        siringaction = _address;
     }
     
     function _isSiringPermitted(uint256 _sireId, uint256 _matronId) internal view returns (bool) {
@@ -262,8 +273,8 @@ contract KittyBreeding is KittyAccessControl {
     }
 
     function _triggerCooldown(uint256 _tokenId) internal {
-        var (,,,,,cooldownIndex,,breedTimes) = kittyOwnership.getKitty(_tokenId);
-        
+        var (,,,,,cooldownIndex,,,breedTimes) = kittyOwnership.getKitty(_tokenId);
+
         // Compute an estimation of the cooldown time in blocks (based on current cooldownIndex).
         uint64 blocknum = uint64(cooldowns[cooldownIndex] / secondsPerBlock);
         blocknum = blocknum + uint64(breedTimes) * (blocknum / 5);
@@ -294,7 +305,7 @@ contract KittyBreeding is KittyAccessControl {
     {
         require(_kittyId > 0);
         // A kitty is pregnant if and only if this field is set
-        var (,,,,,siringWithId,,) = kittyOwnership.getKitty(_kittyId);
+        var (,,,,,siringWithId,,,) = kittyOwnership.getKitty(_kittyId);
         return siringWithId != 0;
     }
 
@@ -311,12 +322,12 @@ contract KittyBreeding is KittyAccessControl {
             return false;
         }
 
-        var (,,,matron_matronId,matron_sireId,,,) = kittyOwnership.getKitty(_matronId);
+        var (,,,matron_matronId,matron_sireId,,,,) = kittyOwnership.getKitty(_matronId);
         // Kitties can't breed with their parents.
         if (matron_matronId == _sireId || matron_sireId == _sireId) {
             return false;
         }
-        var (,,,sire_matronId,sire_sireId,,,) = kittyOwnership.getKitty(_sireId);
+        var (,,,sire_matronId,sire_sireId,,,,) = kittyOwnership.getKitty(_sireId);
         if (sire_matronId == _matronId || sire_sireId == _matronId) {
             return false;
         }
@@ -328,10 +339,10 @@ contract KittyBreeding is KittyAccessControl {
         }
 
         // Kitties can't breed with full or half siblings.
-        if (sire_matronId == matron_matronId || sire_matronId == matron_matronId) {
+        if (sire_matronId == matron_matronId || sire_matronId == matron_sireId) {
             return false;
         }
-        if (sire_sireId == matron_matronId || sire_sireId == matron_matronId) {
+        if (sire_sireId == matron_matronId || sire_sireId == matron_sireId) {
             return false;
         }
 
@@ -359,7 +370,7 @@ contract KittyBreeding is KittyAccessControl {
 
     /// @dev Internal utility function to initiate breeding, assumes that all breeding
     ///  requirements have been checked.
-    function _breedWith(uint256 _matronId, uint256 _sireId) public {
+    function _breedWith(uint256 _matronId, uint256 _sireId) internal {
 
         // Mark the matron as pregnant, keeping track of who the sire is.
         kittyOwnership.setSiringWithId(_matronId, uint32(_sireId));
@@ -377,23 +388,23 @@ contract KittyBreeding is KittyAccessControl {
         pregnantKitties++;
 
         // Emit the pregnancy event.
-        var (,,cooldownEndBlock,,,,,) = kittyOwnership.getKitty(_matronId);
+        var (,,cooldownEndBlock,,,,,,) = kittyOwnership.getKitty(_matronId);
         Pregnant(kittyOwnership.ownerOf(_matronId), _matronId, _sireId, cooldownEndBlock);
+
+        //giveBirth(_matronId);
     }
 
-    /// @notice Breed a Kitty you own (as matron) with a sire that you own, or for which you
-    ///  have previously been given Siring approval. Will either make your cat pregnant, or will
-    ///  fail entirely. Requires a pre-payment of the fee given out to the first caller of giveBirth()
-    /// @param _matronId The ID of the Kitty acting as matron (will end up pregnant if successful)
-    /// @param _sireId The ID of the Kitty acting as sire (will begin its siring cooldown if successful)
     function breedWithAuto(uint256 _matronId, uint256 _sireId)
         external
     {
-        // Caller must own the matron.
         require(kittyOwnership._owns(msg.sender, _matronId));
-
         require(_isSiringPermitted(_sireId, _matronId));
 
+        breedWith(_matronId, _sireId);
+    }
+
+    function breedWith(uint256 _matronId, uint256 _sireId) internal
+    {
         // Make sure matron isn't pregnant, or in the middle of a siring cooldown
         require(kittyOwnership.isReadyToBreed(_matronId));
 
@@ -410,19 +421,47 @@ contract KittyBreeding is KittyAccessControl {
         _breedWith(_matronId, _sireId);
     }
 
+    function breedSelfKitty(uint256 _matronId, uint256 _sireId) external
+    {
+        require(kittyOwnership._owns(msg.sender, _matronId));
+        require(kittyOwnership._owns(msg.sender, _sireId));
+
+        breedWith(_matronId, _sireId);
+    }
+
   
-    function giveBirth(uint256 _matronId)
+    function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner)
         external
         returns(uint256)
     {
-        var (matron_genes,matron_birthTime,matron_cooldownEndBlock,,,matron_siringWithId,,matron_generation) = kittyOwnership.getKitty(_matronId);
+        require(msg.sender == siringaction);
+
+        return giveBirth(_matronId, _sireId, _owner);
+    }
+
+    function giveBirthBySelf(uint256 _matronId, uint256 _sireId) 
+        external
+        returns(uint256)
+    {
+        require(kittyOwnership._owns(msg.sender, _matronId));
+        require(kittyOwnership._owns(msg.sender, _sireId));
+
+        var (,,,,,sireIdWith,,,) = kittyOwnership.getKitty(_matronId);
+        require(sireIdWith == _sireId);
+
+        return giveBirth(_matronId, _sireId, msg.sender);
+    }
+
+    function giveBirth(uint256 _matronId, uint256 _sireId, address _owner)
+        internal
+        returns(uint256)
+    {
+        
+        var (matron_genes,matron_birthTime,,,,,,matron_generation,) = kittyOwnership.getKitty(_matronId);
         // Check that the matron is a valid cat.
         require(matron_birthTime != 0);
-        // Check that the matron is pregnant, and that its time has come!
-        require(_isReadyToGiveBirth(uint32(matron_siringWithId),uint64(matron_cooldownEndBlock)));
+        var (sireId_genes,,,,,,,sireId_generation,) = kittyOwnership.getKitty(_sireId);
 
-        var (sireId_matron_genes,,,,,,,sireId_generation) = kittyOwnership.getKitty(matron_siringWithId);
-        
         // Determine the higher generation number of the two parents
         uint16 parentGen = uint16(matron_generation);
         if (sireId_generation > matron_generation) {
@@ -430,11 +469,10 @@ contract KittyBreeding is KittyAccessControl {
         }
 
         // Call the sooper-sekret gene mixing operation.
-        uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_matron_genes);
+        uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_genes);
 
         // Make the new kitten!
-        address owner = kittyOwnership.ownerOf(_matronId);
-        uint256 kittenId = kittyOwnership.createKitty(_matronId, matron_siringWithId, parentGen + 1, childGenes, owner);
+        uint256 kittenId = kittyOwnership.createKitty(_matronId, _sireId, parentGen + 1, childGenes, _owner, false);
 
         // Clear the reference to sire from the matron (REQUIRED! Having siringWithId
         // set is what marks a matron as being pregnant.)

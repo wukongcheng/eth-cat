@@ -10,11 +10,11 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
 contract ClockAuctionBase {
+
     struct Auction {
         address seller;
         uint128 startingPrice;
@@ -22,7 +22,7 @@ contract ClockAuctionBase {
         uint64 duration;
         uint64 startedAt;
     }
-    
+
     event AuctionCreated(uint256 tokenId, uint256 startingPrice, uint256 endingPrice, uint256 duration);
     event AuctionSuccessful(uint256 tokenId, uint256 totalPrice, address winner);
     event AuctionCancelled(uint256 tokenId);
@@ -30,37 +30,85 @@ contract ClockAuctionBase {
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool);
     function _escrow(address _owner, uint256 _tokenId) internal;
     function _transfer(address _receiver, uint256 _tokenId) internal;
-    function _addAuction(uint256 _tokenId, Auction _auction) internal;
-    function _cancelAuction(uint256 _tokenId, address _seller) internal;
-    function _bid(uint256 _tokenId, uint256 _bidAmount) internal returns (uint256);
-    function _removeAuction(uint256 _tokenId) internal;
-    function _isOnAuction(Auction storage _auction) internal view returns (bool);
-    function _currentPrice(Auction storage _auction) internal view returns (uint256);
-    function _computeCurrentPrice(uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,uint256 _secondsPassed) internal pure returns (uint256);
+    function _addAuction(uint256 _tokenId, Auction _auction) internal ;
+    function _cancelAuction(uint256 _tokenId, address _seller) internal ;
+    function _bid(uint256 _tokenId, uint256 _bidAmount)
+        internal
+        returns (uint256);
+    function _removeAuction(uint256 _tokenId) internal ;
+    function _isOnAuction(Auction storage _auction) internal view returns (bool) ;
+
+    function _currentPrice(Auction storage _auction)
+        internal
+        view
+        returns (uint256);
+
+    function _computeCurrentPrice(
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        uint256 _secondsPassed
+    )
+        internal
+        pure
+        returns (uint256);
 }
 
 contract ClockAuction is ClockAuctionBase {
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
+
     function cancelAuction(uint256 _tokenId) external;
-    function getAuction(uint256 _tokenId) external view returns(address seller,uint256 startingPrice,uint256 endingPrice,uint256 duration,uint256 startedAt);
-    function isOnAuction(uint256 _tokenId) external view returns (bool);
+    function getAuction(uint256 _tokenId)
+        external
+        view
+        returns
+    (
+        address seller,
+        uint256 startingPrice,
+        uint256 endingPrice,
+        uint256 duration,
+        uint256 startedAt
+    );
+
+    function isOnAuction(uint256 _tokenId)
+        external
+        view
+        returns (bool);
     function getCurrentPrice(uint256 _tokenId) external view returns (uint256);
+
+}
+
+contract SaleClockAuction is ClockAuction {
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyCoreAddress(address _address) external;
+    function testAuction() external pure returns (uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price) external;
+    function averageGen0SalePrice() external view returns (uint256);
+
 }
 
 contract SiringClockAuction is ClockAuction {
 
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyBreedingAddress(address _address) external;
     function setKittyCoreAddress(address _address) external;
     function cancelAuction(uint256 _tokenId) external;
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _sireId, uint256 _matronId, uint256 _price) external returns(uint256);
-}
-
-contract SaleClockAuction is ClockAuction {
-
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
-    function averageGen0SalePrice() external view returns (uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price, uint256 _matronId) external;
 }
 
 contract Ownable {
@@ -83,11 +131,16 @@ contract Ownable {
 }
 
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -203,6 +256,11 @@ contract KittyBase is KittyAccessControl {
         uint16 cooldownIndex;
         uint16 generation;
         uint16 breedTimes;
+        uint8  character;
+        uint8  speed;
+        uint8  iq;
+        uint8  physical;
+        uint8  skill;
     }
 
     Kitty[] kitties;
@@ -216,9 +274,8 @@ contract KittyBase is KittyAccessControl {
     SiringClockAuction public siringAuction;
     GeneScience public geneScience;
 
-    function setGeneScienceAddress(address _address) external onlyCEO {
-        GeneScience candidateContract = GeneScience(_address);
-        geneScience = candidateContract;
+    function setGeneScienceAddress(address _address) external {
+        geneScience = GeneScience(_address);
     }
 
     function _transfer(address _from, address _to, uint256 _tokenId)  internal {
@@ -247,15 +304,15 @@ contract KittyBase is KittyAccessControl {
         Transfer(_from, _to, _tokenId);
     }
 
-    function createKitty(
+    function _createKitty(
         uint256 _matronId,
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     )
-        external
-        returns (uint)
+        internal returns (uint)
     {
         require(_matronId == uint256(uint32(_matronId)));
         require(_sireId == uint256(uint32(_sireId)));
@@ -274,7 +331,12 @@ contract KittyBase is KittyAccessControl {
             siringWithId: 0,
             cooldownIndex: cooldownIndex,
             generation: uint16(_generation),
-            breedTimes: uint16(0)
+            breedTimes: uint16(0),
+            character:  uint8(geneScience.fiveDValue(_genes, _gen0, 16)),
+            speed:      uint8(geneScience.fiveDValue(_genes, _gen0, 17)),
+            iq:         uint8(geneScience.fiveDValue(_genes, _gen0, 18)),
+            physical:   uint8(geneScience.fiveDValue(_genes, _gen0, 19)),
+            skill:      uint8(geneScience.fiveDValue(_genes, _gen0, 20))
         });
         
         kitties.push(_kitty);
@@ -303,13 +365,32 @@ contract KittyBase is KittyAccessControl {
 
 contract KittyOwnership is KittyBase, ERC721 {
 
-    /// @notice Name and symbol of the non fungible token, as defined in ERC721.
-    string public constant name = "CryptoKitties";
-    string public constant symbol = "CK";
+    string public constant name = "ETH-CAT";
+    string public constant symbol = "EC";
     address public kittycore;
+    address public breeding;
+    SaleClockAuction public saleAuction;
+    SiringClockAuction public siringAuction;
 
-    function setKittyCoreAddress(address _address) external{
+    function KittyOwnership() public {
+        ceoAddress = msg.sender;
+        cooAddress = msg.sender;
+    }
+
+    function setKittyCoreAddress(address _address) external {
         kittycore = _address;
+    }
+
+    function setBreedingAddress(address _address) external {
+        breeding = _address;
+    }
+
+    function setSaleAuctionAddress(address _address) external {
+        saleAuction = SaleClockAuction(_address);
+    }
+
+    function setSiringAuctionAddress(address _address) external {
+        siringAuction = SiringClockAuction(_address);
     }
     
     function _owns(address _claimant, uint256 _tokenId) public view returns (bool) {
@@ -320,6 +401,10 @@ contract KittyOwnership is KittyBase, ERC721 {
     }
     function _approve(uint256 _tokenId, address _approved) internal {
         kittyIndexToApproved[_tokenId] = _approved;
+    }
+
+    function approveOf(uint256 _tokenId) external view returns (address) {
+        return kittyIndexToApproved[_tokenId];
     }
 
     function balanceOf(address _owner) public view returns (uint256 count) {
@@ -358,6 +443,21 @@ contract KittyOwnership is KittyBase, ERC721 {
 
         // Emit approval event.
         Approval(msg.sender, _to, _tokenId);
+    }
+
+
+    function approveToSaleAuction(uint256 _tokenId) external 
+    {
+        require(_owns(msg.sender, _tokenId));
+        _approve(_tokenId, address(saleAuction));
+        Approval(msg.sender, address(saleAuction), _tokenId);
+    }
+
+    function approveToSiringAuction(uint256 _tokenId) external 
+    {
+        require(_owns(msg.sender, _tokenId));
+        _approve(_tokenId, address(siringAuction));
+        Approval(msg.sender, address(siringAuction), _tokenId);
     }
 
     function transferFrom(
@@ -430,6 +530,35 @@ contract KittyOwnership is KittyBase, ERC721 {
         delete sireAllowedToAddress[_tokenId];
     }
 
+    function createKitty(
+        uint256 _matronId,
+        uint256 _sireId,
+        uint256 _generation,
+        uint256 _genes,
+        address _owner,
+        bool    _gen0
+    )
+        external 
+        returns (uint) 
+    {
+        require(msg.sender == kittycore || msg.sender == breeding);
+        
+        return _createKitty(_matronId, _sireId, _generation, _genes, _owner, _gen0);
+    }
+
+    function createGen0Kitty(
+        uint256 _genes,
+        address _owner
+    )
+        external
+        returns (uint)
+    {
+        uint256 kittyId = _createKitty(0, 0, 0, _genes, _owner, true);
+        _approve(kittyId, address(saleAuction));
+
+        return kittyId;
+    }
+
     function getKitty(uint256 _tokenId) external view returns (
         uint256 genes,
         uint256 birthTime,
@@ -438,7 +567,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     ) {
         Kitty storage kit = kitties[_tokenId];
         
@@ -450,8 +580,25 @@ contract KittyOwnership is KittyBase, ERC721 {
         sireId = uint256(kit.sireId);
         generation = uint256(kit.generation);
         genes = kit.genes;
+        breedTimes = uint256(kit.breedTimes);
     }
     
+    function getKitty5DValue(uint256 _tokenId) external view returns (
+        uint256  character,
+        uint256  speed,
+        uint256  iq,
+        uint256  physical,
+        uint256  skill
+    ) {
+        Kitty storage kit = kitties[_tokenId];
+        
+        character = uint256(kit.character);
+        speed = uint256(kit.speed);
+        iq = uint256(kit.iq);
+        physical = uint256(kit.physical);
+        skill = uint256(kit.skill);
+    }
+
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external {
         Kitty storage kit = kitties[_tokenId];
         kit.siringWithId = _siringWithId;
@@ -511,8 +658,14 @@ contract KittyOwnership is KittyBase, ERC721 {
         }
     }
 
+<<<<<<< HEAD
+    function testGene() external view returns (uint16) {
+        return geneScience.getCoolDown(256);
+        //return 22;
+=======
     function testGene() external view returns (uint256) {
         //return geneScience.getCoolDown(256);
         return 22;
+>>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
     }
 }

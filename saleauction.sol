@@ -8,7 +8,7 @@ contract ERC20 {
     function transfer( address to, uint value) public returns (bool ok);
     function transferFrom( address from, address to, uint value) public returns (bool ok);
     function approve( address spender, uint value ) public returns (bool ok);
-    function transferByAuction(address src, address dst, uint wad) public returns (bool ok);
+    function transferByAuction(address bidder, address seller, uint price, uint fee) public returns (bool);
     function getCFO() external returns (address);
 
     event Transfer( address indexed from, address indexed to, uint value);
@@ -25,7 +25,6 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
@@ -48,13 +47,16 @@ contract Ownable {
   }
 }
 
-
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
 }
 
 contract KittyAccessControl {
@@ -135,11 +137,6 @@ contract KittyAccessControl {
     }
 }
 
-contract GeneScienceInterface {
-    function isGeneScience() public pure returns (bool);
-    function mixGenes(uint256 genes1, uint256 genes2, uint256 targetBlock) public returns (uint256);
-}
-
 contract KittyBase is KittyAccessControl {
     /*** EVENTS ***/
     event Birth(address owner, uint256 kittyId, uint256 matronId, uint256 sireId, uint256 genes);
@@ -185,15 +182,19 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
+    function setSaleAuctionAddress(address _address) external;
+    function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
     function setSireAllowedTo(uint256 _tokenId, address _address) external;
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
     function isReadyToBreed(uint256 _tokenId) external view returns (bool);
@@ -201,6 +202,10 @@ contract KittyOwnership is KittyBase, ERC721 {
     function setBreedTimes(uint256 _tokenId, uint16 _breedTimes) external;
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
+    function testGene() external view returns (uint256);
+    function approveToSaleAuction(uint256 _tokenId) external;
+    function setSiringAuctionAddress(address _address) external;
+    function approveToSiringAuction(uint256 _tokenId) external;
 }
 
 contract ClockAuctionBase {
@@ -222,6 +227,8 @@ contract ClockAuctionBase {
 
     ERC721 public nonFungibleContract;
     ERC20 public niuTokenContract;
+    KittyOwnership public kittyOwnership;
+    address public kittycore;
 
     // Map from token ID to their corresponding auction.
     mapping (uint256 => Auction) tokenIdToAuction;
@@ -230,38 +237,19 @@ contract ClockAuctionBase {
     event AuctionSuccessful(uint256 tokenId, uint256 totalPrice, address winner);
     event AuctionCancelled(uint256 tokenId);
 
-    /// @dev Returns true if the claimant owns the token.
-    /// @param _claimant - Address claiming to own the token.
-    /// @param _tokenId - ID of token whose ownership to verify.
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
         return (nonFungibleContract.ownerOf(_tokenId) == _claimant);
     }
 
-    /// @dev Escrows the NFT, assigning ownership to this contract.
-    /// Throws if the escrow fails.
-    /// @param _owner - Current owner address of token to escrow.
-    /// @param _tokenId - ID of token whose approval to verify.
     function _escrow(address _owner, uint256 _tokenId) internal {
-        // it will throw if transfer fails
         nonFungibleContract.transferFrom(_owner, this, _tokenId);
     }
 
-    /// @dev Transfers an NFT owned by this contract to another address.
-    /// Returns true if the transfer succeeds.
-    /// @param _receiver - Address to transfer NFT to.
-    /// @param _tokenId - ID of token to transfer.
     function _transfer(address _receiver, uint256 _tokenId) internal {
-        // it will throw if transfer fails
         nonFungibleContract.transfer(_receiver, _tokenId);
     }
 
-    /// @dev Adds an auction to the list of open auctions. Also fires the
-    ///  AuctionCreated event.
-    /// @param _tokenId The ID of the token to be put on auction.
-    /// @param _auction Auction to add.
     function _addAuction(uint256 _tokenId, Auction _auction) internal {
-        // Require that all auctions have a duration of
-        // at least one minute. (Keeps our math from getting hairy!)
         require(_auction.duration >= 1 minutes);
 
         tokenIdToAuction[_tokenId] = _auction;
@@ -274,68 +262,39 @@ contract ClockAuctionBase {
         );
     }
 
-    /// @dev Cancels an auction unconditionally.
     function _cancelAuction(uint256 _tokenId, address _seller) internal {
         _removeAuction(_tokenId);
         _transfer(_seller, _tokenId);
         AuctionCancelled(_tokenId);
     }
 
-    /// @dev Computes the price and transfers winnings.
-    /// Does NOT transfer ownership of token.
     function _bid(uint256 _tokenId, uint256 _bidAmount)
         internal
         returns (uint256)
     {
         require(niuTokenContract.balanceOf(msg.sender) >= _bidAmount);
 
-        // Get a reference to the auction struct
         Auction storage auction = tokenIdToAuction[_tokenId];
-
-        // Explicitly check that this auction is currently live.
-        // (Because of how Ethereum mappings work, we can't just count
-        // on the lookup above failing. An invalid _tokenId will just
-        // return an auction object that is all zeros.)
         require(_isOnAuction(auction));
 
-        // Check that the bid is greater than or equal to the current price
         uint256 price = _currentPrice(auction);
         require(_bidAmount >= price);
 
-        // Grab a reference to the seller before the auction struct
-        // gets deleted.
-        address seller = auction.seller;
-
-        // The bid is good! Remove the auction before sending the fees
-        // to the sender so we can't have a reentrancy attack.
         _removeAuction(_tokenId);
 
-        uint256 fee = uint256(_bidAmount * 3 / 80);
-        niuTokenContract.transferByAuction(msg.sender, seller, _bidAmount - fee);
-        niuTokenContract.transferByAuction(msg.sender, niuTokenContract.getCFO(), fee);
-
-        // Tell the world!
         AuctionSuccessful(_tokenId, _bidAmount, msg.sender);
 
         return _bidAmount;
     }
 
-    /// @dev Removes an auction from the list of open auctions.
-    /// @param _tokenId - ID of NFT on auction.
     function _removeAuction(uint256 _tokenId) internal {
         delete tokenIdToAuction[_tokenId];
     }
 
-    /// @dev Returns true if the NFT is on auction.
-    /// @param _auction - Auction to check.
     function _isOnAuction(Auction storage _auction) internal view returns (bool) {
         return (_auction.startedAt > 0);
     }
 
-    /// @dev Returns current price of an NFT on auction. Broken into two
-    ///  functions (this one, that computes the duration from the auction
-    ///  structure, and the other that does the price computation) so we
-    ///  can easily test that the price computation works correctly.
     function _currentPrice(Auction storage _auction)
         internal
         view
@@ -343,9 +302,6 @@ contract ClockAuctionBase {
     {
         uint256 secondsPassed = 0;
 
-        // A bit of insurance against negative values (or wraparound).
-        // Probably not necessary (since Ethereum guarnatees that the
-        // now variable doesn't ever go backwards).
         if (now > _auction.startedAt) {
             secondsPassed = now - _auction.startedAt;
         }
@@ -358,10 +314,6 @@ contract ClockAuctionBase {
         );
     }
 
-    /// @dev Computes the current price of an auction. Factored out
-    ///  from _currentPrice so we can run extensive unit tests.
-    ///  When testing, make this function public and turn on
-    ///  `Current price computation` test suite.
     function _computeCurrentPrice(
         uint256 _startingPrice,
         uint256 _endingPrice,
@@ -385,55 +337,7 @@ contract ClockAuctionBase {
 }
 
 contract ClockAuction is ClockAuctionBase {
-    /// @dev Creates and begins a new auction.
-    /// @param _tokenId - ID of token to auction, sender must be owner.
-    /// @param _startingPrice - Price of item (in wei) at beginning of auction.
-    /// @param _endingPrice - Price of item (in wei) at end of auction.
-    /// @param _duration - Length of time to move between starting
-    ///  price and ending price (in seconds).
-    /// @param _seller - Seller, if not the message sender
-    function createAuction(
-        uint256 _tokenId,
-        uint256 _startingPrice,
-        uint256 _endingPrice,
-        uint256 _duration,
-        address _seller
-    ) external
-    {
-        // Sanity check that no inputs overflow how many bits we've allocated
-        // to store them in the auction struct.
-        require(_startingPrice == uint256(uint128(_startingPrice)));
-        require(_endingPrice == uint256(uint128(_endingPrice)));
-        require(_duration == uint256(uint64(_duration)));
 
-        require(_owns(msg.sender, _tokenId));
-        _escrow(msg.sender, _tokenId);
-        Auction memory auction = Auction(
-            _seller,
-            uint128(_startingPrice),
-            uint128(_endingPrice),
-            uint64(_duration),
-            uint64(now)
-        );
-        _addAuction(_tokenId, auction);
-    }
-
-    /// @dev Bids on an open auction, completing the auction and transferring
-    ///  ownership of the NFT if enough Ether is supplied.
-    /// @param _tokenId - ID of token to bid on.
-    function bid(uint256 _tokenId, uint256 _price)
-        external
-    {
-        // _bid will throw if the bid or funds transfer fails
-        _bid(_tokenId, _price);
-        _transfer(msg.sender, _tokenId);
-    }
-
-    /// @dev Cancels an auction that hasn't been won yet.
-    ///  Returns the NFT to original owner.
-    /// @notice This is a state-modifying function that can
-    ///  be called while the contract is paused.
-    /// @param _tokenId - ID of token on auction
     function cancelAuction(uint256 _tokenId)
         external
     {
@@ -444,8 +348,6 @@ contract ClockAuction is ClockAuctionBase {
         _cancelAuction(_tokenId, seller);
     }
 
-    /// @dev Returns auction info for an NFT on auction.
-    /// @param _tokenId - ID of NFT on auction.
     function getAuction(uint256 _tokenId)
         external
         view
@@ -477,8 +379,6 @@ contract ClockAuction is ClockAuctionBase {
         return _isOnAuction(auction);
     }
 
-    /// @dev Returns the current price of an auction.
-    /// @param _tokenId - ID of the token price we are checking.
     function getCurrentPrice(uint256 _tokenId)
         external
         view
@@ -491,36 +391,29 @@ contract ClockAuction is ClockAuctionBase {
 
 }
 
-
-/// @title Clock auction modified for sale of kitties
-/// @notice We omit a fallback function to prevent accidental sends to this contract.
 contract SaleClockAuction is ClockAuction {
-
-    // @dev Sanity check that allows us to ensure that we are pointing to the
-    //  right auction in our setSaleAuctionAddress() call.
-    bool public isSaleClockAuction = true;
 
     // Tracks last 5 sale price of gen0 kitty sales
     uint256 public gen0SaleCount;
     uint256[5] public lastGen0SalePrices;
 
     function setERC721Address(address _nftAddress) external {
-        ERC721 candidateContract = ERC721(_nftAddress);
-        nonFungibleContract = candidateContract;
+        nonFungibleContract = ERC721(_nftAddress);
+        kittyOwnership = KittyOwnership(_nftAddress);
     }
 
     function setERC20Address(address _erc20Address) external {
-        ERC20 candidateContract = ERC20(_erc20Address);
-        niuTokenContract = candidateContract;
+        niuTokenContract = ERC20(_erc20Address);
     }
 
+    function setKittyCoreAddress(address _address) external{
+        kittycore = _address;
+    }
 
-    /// @dev Creates and begins a new auction.
-    /// @param _tokenId - ID of token to auction, sender must be owner.
-    /// @param _startingPrice - Price of item (in wei) at beginning of auction.
-    /// @param _endingPrice - Price of item (in wei) at end of auction.
-    /// @param _duration - Length of auction (in seconds).
-    /// @param _seller - Seller, if not the message sender
+    function testAuction() external pure returns (uint256) {
+        return 1000;
+    }
+
     function createAuction(
         uint256 _tokenId,
         uint256 _startingPrice,
@@ -530,13 +423,11 @@ contract SaleClockAuction is ClockAuction {
     )
         external
     {
-        // Sanity check that no inputs overflow how many bits we've allocated
-        // to store them in the auction struct.
         require(_startingPrice == uint256(uint128(_startingPrice)));
         require(_endingPrice == uint256(uint128(_endingPrice)));
         require(_duration == uint256(uint64(_duration)));
 
-        require(msg.sender == address(nonFungibleContract));
+        require(msg.sender == kittycore);
         _escrow(_seller, _tokenId);
         Auction memory auction = Auction(
             _seller,
@@ -548,8 +439,6 @@ contract SaleClockAuction is ClockAuction {
         _addAuction(_tokenId, auction);
     }
 
-    /// @dev Updates lastSalePrice if seller is the nft contract
-    /// Otherwise, works the same as default bid method.
     function bid(uint256 _tokenId, uint256 _price)
         external
     {
@@ -559,15 +448,20 @@ contract SaleClockAuction is ClockAuction {
         require(seller != address(0));
         require(msg.sender != seller);
 
-        uint256 price = _bid(_tokenId, _price);
-        _transfer(msg.sender, _tokenId);
-
+        _bid(_tokenId, _price);
+        
         // If not a gen0 auction, exit
-        if (seller == address(nonFungibleContract)) {
+        var (,,,,,,,generation,) = kittyOwnership.getKitty(_tokenId);
+        if (generation == 0) {
             // Track gen0 sale prices
-            lastGen0SalePrices[gen0SaleCount % 5] = price;
+            lastGen0SalePrices[gen0SaleCount % 5] = _price;
             gen0SaleCount++;
         }
+
+        _transfer(msg.sender, _tokenId);
+
+        uint256 fee = uint256(_price * 3 / 80);
+        niuTokenContract.transferByAuction(msg.sender, seller, _price, fee);
     }
 
     function averageGen0SalePrice() external view returns (uint256) {

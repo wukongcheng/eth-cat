@@ -10,11 +10,11 @@ contract ERC721 {
     function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
     // Events
-    event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 }
 
 contract ClockAuctionBase {
+
     struct Auction {
         address seller;
         uint128 startingPrice;
@@ -22,7 +22,7 @@ contract ClockAuctionBase {
         uint64 duration;
         uint64 startedAt;
     }
-    
+
     event AuctionCreated(uint256 tokenId, uint256 startingPrice, uint256 endingPrice, uint256 duration);
     event AuctionSuccessful(uint256 tokenId, uint256 totalPrice, address winner);
     event AuctionCancelled(uint256 tokenId);
@@ -30,37 +30,85 @@ contract ClockAuctionBase {
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool);
     function _escrow(address _owner, uint256 _tokenId) internal;
     function _transfer(address _receiver, uint256 _tokenId) internal;
-    function _addAuction(uint256 _tokenId, Auction _auction) internal;
-    function _cancelAuction(uint256 _tokenId, address _seller) internal;
-    function _bid(uint256 _tokenId, uint256 _bidAmount) internal returns (uint256);
-    function _removeAuction(uint256 _tokenId) internal;
-    function _isOnAuction(Auction storage _auction) internal view returns (bool);
-    function _currentPrice(Auction storage _auction) internal view returns (uint256);
-    function _computeCurrentPrice(uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,uint256 _secondsPassed) internal pure returns (uint256);
+    function _addAuction(uint256 _tokenId, Auction _auction) internal ;
+    function _cancelAuction(uint256 _tokenId, address _seller) internal ;
+    function _bid(uint256 _tokenId, uint256 _bidAmount)
+        internal
+        returns (uint256);
+    function _removeAuction(uint256 _tokenId) internal ;
+    function _isOnAuction(Auction storage _auction) internal view returns (bool) ;
+
+    function _currentPrice(Auction storage _auction)
+        internal
+        view
+        returns (uint256);
+
+    function _computeCurrentPrice(
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        uint256 _secondsPassed
+    )
+        internal
+        pure
+        returns (uint256);
 }
 
 contract ClockAuction is ClockAuctionBase {
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
+
     function cancelAuction(uint256 _tokenId) external;
-    function getAuction(uint256 _tokenId) external view returns(address seller,uint256 startingPrice,uint256 endingPrice,uint256 duration,uint256 startedAt);
-    function isOnAuction(uint256 _tokenId) external view returns (bool);
+    function getAuction(uint256 _tokenId)
+        external
+        view
+        returns
+    (
+        address seller,
+        uint256 startingPrice,
+        uint256 endingPrice,
+        uint256 duration,
+        uint256 startedAt
+    );
+
+    function isOnAuction(uint256 _tokenId)
+        external
+        view
+        returns (bool);
     function getCurrentPrice(uint256 _tokenId) external view returns (uint256);
+
+}
+
+contract SaleClockAuction is ClockAuction {
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyCoreAddress(address _address) external;
+    function testAuction() external pure returns (uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price) external;
+    function averageGen0SalePrice() external view returns (uint256);
+
 }
 
 contract SiringClockAuction is ClockAuction {
 
+    function setERC721Address(address _nftAddress) external;
+    function setERC20Address(address _erc20Address) external;
+    function setKittyBreedingAddress(address _address) external;
     function setKittyCoreAddress(address _address) external;
     function cancelAuction(uint256 _tokenId) external;
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _sireId, uint256 _matronId, uint256 _price) external returns(uint256);
-}
-
-contract SaleClockAuction is ClockAuction {
-
-    function createAuction(uint256 _tokenId,uint256 _startingPrice,uint256 _endingPrice,uint256 _duration,address _seller) external;
-    function bid(uint256 _tokenId, uint256 _price) external;
-    function averageGen0SalePrice() external view returns (uint256);
+    function createAuction(
+        uint256 _tokenId,
+        uint256 _startingPrice,
+        uint256 _endingPrice,
+        uint256 _duration,
+        address _seller
+    ) external;
+    function bid(uint256 _tokenId, uint256 _price, uint256 _matronId) external;
 }
 
 contract Ownable {
@@ -83,11 +131,16 @@ contract Ownable {
 }
 
 contract GeneScience {
-    function random() internal view returns (uint256);
-    function getBitMask(uint32[] index) internal pure returns (bytes32);
+    function random() internal view returns (uint256) ;
+    function getBitMask(uint8[] index) internal pure returns (bytes32);
     function mixGenes(uint256 genes1, uint256 genes2) external view returns (uint256);
+    function getCoolDown(uint256 genes) external view returns (uint16) ;
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32);
-    function getCoolDown(uint256 genes) external view returns (uint16);
+    function init_attribute() external;
+    function init_mixrule() external;
+    function init_rate() external;
+    function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -229,15 +282,19 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
+    function setSaleAuctionAddress(address _address) external;
+    function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
     function setSireAllowedTo(uint256 _tokenId, address _address) external;
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external;
     function isReadyToBreed(uint256 _tokenId) external view returns (bool);
@@ -246,6 +303,12 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
     function testGene() external view returns (uint256);
+<<<<<<< HEAD
+    function approveToSaleAuction(uint256 _tokenId) external;
+    function setSiringAuctionAddress(address _address) external;
+    function approveToSiringAuction(uint256 _tokenId) external;
+=======
+>>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -266,7 +329,7 @@ contract KittyBreeding is KittyAccessControl {
     function canBreedWith(uint256 _matronId, uint256 _sireId) external view returns(bool);
     function _breedWith(uint256 _matronId, uint256 _sireId) public;
     function breedWithAuto(uint256 _matronId, uint256 _sireId) external;
-    function giveBirth(uint256 _matronId) external returns(uint256);
+    function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner) external returns(uint256);
 }
 
 contract KittyAuction is KittyAccessControl {
@@ -279,9 +342,12 @@ contract KittyAuction is KittyAccessControl {
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
+<<<<<<< HEAD
+=======
         
         // start with the mythical kitten 0 - so we don't have generation-0 parent issues
         //kittyOwnership.createKitty(0, 0, 0, uint256(-1), msg.sender);
+>>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
     }
     
     function setBreeding(address _address) external onlyCEO {
@@ -308,14 +374,11 @@ contract KittyAuction is KittyAccessControl {
         uint256 _duration
     )
         external
-        whenNotPaused
     {
         require(kittyOwnership._owns(msg.sender, _kittyId));
         require(!kittyBreeding.isPregnant(_kittyId));
         require(!saleAuction.isOnAuction(_kittyId));
-        kittyOwnership.approve(saleAuction,_kittyId);
-        // Sale auction throws if inputs are invalid and clears
-        // transfer and sire approval after escrowing the kitty.
+
         saleAuction.createAuction(
             _kittyId,
             _startingPrice,
@@ -325,9 +388,6 @@ contract KittyAuction is KittyAccessControl {
         );
     }
 
-    /// @dev Put a kitty up for auction to be sire.
-    ///  Performs checks to ensure the kitty can be sired, then
-    ///  delegates to reverse auction.
     function createSiringAuction(
         uint256 _kittyId,
         uint256 _startingPrice,
@@ -335,17 +395,11 @@ contract KittyAuction is KittyAccessControl {
         uint256 _duration
     )
         external
-        whenNotPaused
     {
-        // Auction contract checks input sizes
-        // If kitty is already on any auction, this will throw
-        // because it will be owned by the auction contract.
         require(kittyOwnership._owns(msg.sender, _kittyId));
         require(kittyOwnership.isReadyToBreed(_kittyId));
         require(!siringAuction.isOnAuction(_kittyId));
-        kittyOwnership.approve(siringAuction,_kittyId);
-        // Siring auction throws if inputs are invalid and clears
-        // transfer and sire approval after escrowing the kitty.
+        
         siringAuction.createAuction(
             _kittyId,
             _startingPrice,
@@ -354,41 +408,14 @@ contract KittyAuction is KittyAccessControl {
             msg.sender
         );
     }
-
-    /// @dev Completes a siring auction by bidding.
-    ///  Immediately breeds the winning matron with the sire on auction.
-    /// @param _sireId - ID of the sire on auction.
-    /// @param _matronId - ID of the matron owned by the bidder.
-    function bidOnSiringAuction(
-        uint256 _sireId,
-        uint256 _matronId,
-        uint256 _price
-    )
-        external
-        payable
-        whenNotPaused
-    {
-        // Auction contract checks input sizes
-        require(kittyOwnership._owns(msg.sender, _matronId));
-        require(kittyOwnership.isReadyToBreed(_matronId));
-        require(kittyBreeding._canBreedWithViaAuction(_matronId, _sireId));
-
-        // Define the current price of the auction.
-        uint256 currentPrice = siringAuction.getCurrentPrice(_sireId);
-        require(_price >= currentPrice);
-
-        // Siring auction will throw if the bid fails.
-        siringAuction.bid(_sireId, _matronId, _price);
-        kittyBreeding._breedWith(uint32(_matronId), uint32(_sireId));
-    }
 }
 
 /// @title all functions related to creating kittens
 contract KittyMinting is KittyAuction {
 
     // Limits the number of cats the contract owner can ever create.
-    uint256 public constant PROMO_CREATION_LIMIT = 5000;
-    uint256 public constant GEN0_CREATION_LIMIT = 45000;
+    uint256 public constant PROMO_CREATION_LIMIT = 10000;
+    uint256 public constant GEN0_CREATION_LIMIT = 100000;
 
     // Constants for gen0 auctions.
     uint256 public constant GEN0_STARTING_PRICE = 500;
@@ -401,7 +428,7 @@ contract KittyMinting is KittyAuction {
     /// @dev we can create promo kittens, up to a limit. Only callable by COO
     /// @param _genes the encoded genes of the kitten to be created, any value is accepted
     /// @param _owner the future owner of the created kittens. Default to contract COO
-    function createPromoKitty(uint256 _genes, address _owner) external {
+    function createPromoKitty(uint256 _genes, address _owner) external onlyCOO {
         address kittyOwner = _owner;
         if (kittyOwner == address(0)) {
              kittyOwner = cooAddress;
@@ -409,12 +436,14 @@ contract KittyMinting is KittyAuction {
         require(promoCreatedCount < PROMO_CREATION_LIMIT);
 
         promoCreatedCount++;
-        kittyOwnership.createKitty(0, 0, 0, _genes, kittyOwner);
+        kittyOwnership.createKitty(0, 0, 0, _genes, kittyOwner, false);
     }
 
     function testKittyOwnership() external view returns (uint256) {
         return kittyOwnership.testGene();
     }
+<<<<<<< HEAD
+=======
 
     function getKittyOwnership() external view returns (address) {
         return address(kittyOwnership);
@@ -424,19 +453,53 @@ contract KittyMinting is KittyAuction {
     ///  creates an auction for it.
     function createGen0Auction(uint256 _genes) external onlyCOO {
         require(gen0CreatedCount < GEN0_CREATION_LIMIT);
+>>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
 
-        uint256 kittyId = kittyOwnership.createKitty(0, 0, 0, _genes, address(this));
-        kittyOwnership.approve(saleAuction, kittyId);
+    function testSaleAuction() external view returns (uint256) {
+        return saleAuction.testAuction();
+    }
+    
+    function testParam() external view returns (uint256) {
+        return gen0CreatedCount;
+    }
 
+    function testCreateAuction(uint256 kittyId) external {
         saleAuction.createAuction(
             kittyId,
+            5000,
+            20,
+            99999,
+            address(this)
+        );
+    }
+
+    function getKittyOwnership() external view returns (address) {
+        return address(kittyOwnership);
+    }
+
+    /// @dev Creates a new gen0 kitty with the given genes
+    function createGen0Kitty(uint256 _genes) external onlyCEO {
+        require(gen0CreatedCount < GEN0_CREATION_LIMIT);
+        gen0CreatedCount++;
+
+        kittyOwnership.createGen0Kitty(_genes, cooAddress);
+    }
+
+    function createGen0SaleAuction(uint256 _kittyId) external onlyCOO
+    {
+        require(kittyOwnership._owns(msg.sender, _kittyId));
+
+        var (,,,,,,,generation,) = kittyOwnership.getKitty(_kittyId);
+        require(generation == 0);
+
+        saleAuction.createAuction(
+            _kittyId,
             _computeNextGen0Price(),
             0,
             GEN0_AUCTION_DURATION,
             address(this)
         );
 
-        gen0CreatedCount++;
     }
 
     /// @dev Computes the next gen0 auction starting price, given
@@ -464,32 +527,13 @@ contract KittyMinting is KittyAuction {
 /// @dev The main CryptoKitties contract, keeps track of kittens so they don't wander around and get lost.
 contract KittyCore is KittyMinting {
 
-    // Set in case the core contract is broken and an upgrade is required
-    address public newContractAddress;
-
     /// @notice Creates the main CryptoKitties smart contract instance.
     function KittyCore() public {
-        // Starts paused.
-        // paused = true;
-
         // the creator of the contract is the initial CEO
         ceoAddress = msg.sender;
 
         // the creator of the contract is also the initial COO
         cooAddress = msg.sender;
     }
-
-    /// @dev Used to mark the smart contract as upgraded, in case there is a serious
-    ///  breaking bug. This method does nothing but keep track of the new contract and
-    ///  emit a message indicating that the new address is set. It's up to clients of this
-    ///  contract to update to the new contract address in that case. (This contract will
-    ///  be paused indefinitely if such an upgrade takes place.)
-    /// @param _v2Address new address
-    function setNewAddress(address _v2Address) external onlyCEO whenPaused {
-        // See README.md for updgrade plan
-        newContractAddress = _v2Address;
-        ContractUpgrade(_v2Address);
-    }
-
 
 }
