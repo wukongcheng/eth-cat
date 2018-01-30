@@ -575,6 +575,22 @@ contract KittyOwnership is KittyBase, ERC721 {
         breedTimes = uint256(kit.breedTimes);
     }
     
+    function getKitty5DValue(uint256 _tokenId) external view returns (
+        uint256  character,
+        uint256  speed,
+        uint256  iq,
+        uint256  physical,
+        uint256  skill
+    ) {
+        Kitty storage kit = kitties[_tokenId];
+        
+        character = uint256(kit.character);
+        speed = uint256(kit.speed);
+        iq = uint256(kit.iq);
+        physical = uint256(kit.physical);
+        skill = uint256(kit.skill);
+    }
+
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external {
         Kitty storage kit = kitties[_tokenId];
         kit.siringWithId = _siringWithId;
