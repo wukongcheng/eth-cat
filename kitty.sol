@@ -303,12 +303,9 @@ contract KittyOwnership is KittyBase, ERC721 {
     function deleteSireAllowedTo(uint256 _tokenId) external;
     function deleteSiringWithId(uint256 _tokenId) external;
     function testGene() external view returns (uint256);
-<<<<<<< HEAD
     function approveToSaleAuction(uint256 _tokenId) external;
     function setSiringAuctionAddress(address _address) external;
     function approveToSiringAuction(uint256 _tokenId) external;
-=======
->>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
 }
 
 contract KittyBreeding is KittyAccessControl {
@@ -342,12 +339,6 @@ contract KittyAuction is KittyAccessControl {
     function setKittyOwnership(address _address) external onlyCEO {
         KittyOwnership candidateContract = KittyOwnership(_address);
         kittyOwnership = candidateContract;
-<<<<<<< HEAD
-=======
-        
-        // start with the mythical kitten 0 - so we don't have generation-0 parent issues
-        //kittyOwnership.createKitty(0, 0, 0, uint256(-1), msg.sender);
->>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
     }
     
     function setBreeding(address _address) external onlyCEO {
@@ -442,18 +433,6 @@ contract KittyMinting is KittyAuction {
     function testKittyOwnership() external view returns (uint256) {
         return kittyOwnership.testGene();
     }
-<<<<<<< HEAD
-=======
-
-    function getKittyOwnership() external view returns (address) {
-        return address(kittyOwnership);
-    }
-
-    /// @dev Creates a new gen0 kitty with the given genes and
-    ///  creates an auction for it.
-    function createGen0Auction(uint256 _genes) external onlyCOO {
-        require(gen0CreatedCount < GEN0_CREATION_LIMIT);
->>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
 
     function testSaleAuction() external view returns (uint256) {
         return saleAuction.testAuction();

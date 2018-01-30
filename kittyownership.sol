@@ -658,14 +658,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         }
     }
 
-<<<<<<< HEAD
     function testGene() external view returns (uint16) {
         return geneScience.getCoolDown(256);
         //return 22;
-=======
-    function testGene() external view returns (uint256) {
-        //return geneScience.getCoolDown(256);
-        return 22;
->>>>>>> 6e5e75cbb4c7895d480ca303a22ffa550b1c5009
     }
 }
