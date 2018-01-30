@@ -360,20 +360,6 @@ contract KittyBase is KittyAccessControl {
 
         return newKittenId;
     }
-
-    function createKitty(
-        uint256 _matronId,
-        uint256 _sireId,
-        uint256 _generation,
-        uint256 _genes,
-        address _owner,
-        bool    _gen0
-    )
-        external 
-        returns (uint) 
-    {
-        return _createKitty(_matronId, _sireId, _generation, _genes, _owner, _gen0);
-    }
 }
 
 contract KittyOwnership is KittyBase, ERC721 {
@@ -381,6 +367,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     string public constant name = "ETH-CAT";
     string public constant symbol = "EC";
     address public kittycore;
+    address public breeding;
     SaleClockAuction public saleAuction;
     SiringClockAuction public siringAuction;
 
@@ -391,6 +378,10 @@ contract KittyOwnership is KittyBase, ERC721 {
 
     function setKittyCoreAddress(address _address) external {
         kittycore = _address;
+    }
+
+    function setBreedingAddress(address _address) external {
+        breeding = _address;
     }
 
     function setSaleAuctionAddress(address _address) external {
@@ -536,6 +527,22 @@ contract KittyOwnership is KittyBase, ERC721 {
 
     function deleteSireAllowedTo(uint256 _tokenId) external {
         delete sireAllowedToAddress[_tokenId];
+    }
+
+    function createKitty(
+        uint256 _matronId,
+        uint256 _sireId,
+        uint256 _generation,
+        uint256 _genes,
+        address _owner,
+        bool    _gen0
+    )
+        external 
+        returns (uint) 
+    {
+        require(msg.sender == kittycore || msg.sender == breeding);
+        
+        return _createKitty(_matronId, _sireId, _generation, _genes, _owner, _gen0);
     }
 
     function createGen0Kitty(
