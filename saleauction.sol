@@ -190,7 +190,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
     function setSaleAuctionAddress(address _address) external;
     function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);

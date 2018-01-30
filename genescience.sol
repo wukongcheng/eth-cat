@@ -172,6 +172,39 @@ contract GeneScience {
         return firstPos;
     }
 
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8) {
+        bytes32 a = bytes32(genes);
+        uint8[] storage pos = _attribute[attID];
+        uint8 attV = 0;
+
+        if((bytes32(0x1) << pos[0]) & a > 0) {
+            attV = 2;
+        } else if((bytes32(0x1) << pos[1]) & a > 0) {
+            attV = 1;
+        } else {
+            attV = 0;
+        }
+
+        if(gen0 == false) {
+            if(attV == 0) {
+                return uint8(random() % 4) + 1;
+            }
+            if(attV == 1) {
+                return uint8(random() % 5) + 5;
+            }
+            return uint8(random() % 10) + 10;
+        } 
+        else {
+            if(attV == 0) {
+                return uint8(random() % 5) + 5;
+            }
+            if(attV == 1) {
+                return uint8(random() % 10) + 10;
+            }
+            return uint8(random() % 10) + 20;
+        }
+    }
+
     function variation(uint32 attID, bytes32 genes) internal view returns (bytes32) {
     	uint32 rate = _variation_rate[attID];
     	if((random() % 1000) >= rate)

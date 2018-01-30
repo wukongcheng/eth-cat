@@ -42,6 +42,7 @@ contract GeneScience {
     function init_mixrule() external;
     function init_rate() external;
     function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -191,7 +192,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
     function setSaleAuctionAddress(address _address) external;
     function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
@@ -451,7 +453,7 @@ contract KittyBreeding is KittyAccessControl {
         uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_genes);
 
         // Make the new kitten!
-        uint256 kittenId = kittyOwnership.createKitty(_matronId, _sireId, parentGen + 1, childGenes, _owner);
+        uint256 kittenId = kittyOwnership.createKitty(_matronId, _sireId, parentGen + 1, childGenes, _owner, false);
 
         // Clear the reference to sire from the matron (REQUIRED! Having siringWithId
         // set is what marks a matron as being pregnant.)

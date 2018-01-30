@@ -140,6 +140,7 @@ contract GeneScience {
     function init_mixrule() external;
     function init_rate() external;
     function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -255,6 +256,11 @@ contract KittyBase is KittyAccessControl {
         uint16 cooldownIndex;
         uint16 generation;
         uint16 breedTimes;
+        uint8  character;
+        uint8  speed;
+        uint8  iq;
+        uint8  physical;
+        uint8  skill;
     }
 
     Kitty[] kitties;
@@ -303,7 +309,8 @@ contract KittyBase is KittyAccessControl {
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     )
         internal returns (uint)
     {
@@ -313,8 +320,7 @@ contract KittyBase is KittyAccessControl {
 
         // The cooldown is decided by genes
         uint16 cooldownIndex = geneScience.getCoolDown(_genes);
-        //uint16 cooldownIndex = 5;
-        
+
         Kitty memory _kitty = Kitty({
             genes: _genes,
             birthTime: uint64(now),
@@ -324,7 +330,12 @@ contract KittyBase is KittyAccessControl {
             siringWithId: 0,
             cooldownIndex: cooldownIndex,
             generation: uint16(_generation),
-            breedTimes: uint16(0)
+            breedTimes: uint16(0),
+            character:  uint8(geneScience.fiveDValue(_genes, _gen0, 16)),
+            speed:      uint8(geneScience.fiveDValue(_genes, _gen0, 17)),
+            iq:         uint8(geneScience.fiveDValue(_genes, _gen0, 18)),
+            physical:   uint8(geneScience.fiveDValue(_genes, _gen0, 19)),
+            skill:      uint8(geneScience.fiveDValue(_genes, _gen0, 20))
         });
         
         kitties.push(_kitty);
@@ -355,12 +366,13 @@ contract KittyBase is KittyAccessControl {
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     )
         external 
         returns (uint) 
     {
-        return _createKitty(_matronId, _sireId, _generation, _genes, _owner);
+        return _createKitty(_matronId, _sireId, _generation, _genes, _owner, _gen0);
     }
 }
 
@@ -533,7 +545,7 @@ contract KittyOwnership is KittyBase, ERC721 {
         external
         returns (uint)
     {
-        uint256 kittyId = _createKitty(0, 0, 0, _genes, _owner);
+        uint256 kittyId = _createKitty(0, 0, 0, _genes, _owner, true);
         _approve(kittyId, address(saleAuction));
 
         return kittyId;

@@ -57,6 +57,7 @@ contract GeneScience {
     function init_mixrule() external;
     function init_rate() external;
     function init_rate_distribution() external;
+    function fiveDValue(uint256 genes, bool gen0, uint8 attID) external view returns (uint8);
 }
 
 contract KittyAccessControl {
@@ -190,7 +191,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _sireId,
         uint256 _generation,
         uint256 _genes,
-        address _owner
+        address _owner,
+        bool    _gen0
     ) external returns (uint);
     function setSaleAuctionAddress(address _address) external;
     function createGen0Kitty(uint256 _genes, address _owner) external returns (uint);
