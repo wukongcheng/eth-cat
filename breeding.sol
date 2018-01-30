@@ -417,7 +417,7 @@ contract KittyBreeding is KittyAccessControl {
     }
 
   
-    function giveBirth(uint256 _matronId)
+    function giveBirth(uint256 _matronId, address winner)
         internal
         returns(uint256)
     {
@@ -439,8 +439,7 @@ contract KittyBreeding is KittyAccessControl {
         uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_matron_genes);
 
         // Make the new kitten!
-        address owner = kittyOwnership.ownerOf(_matronId);
-        uint256 kittenId = kittyOwnership.createKitty(_matronId, matron_siringWithId, parentGen + 1, childGenes, owner);
+        uint256 kittenId = kittyOwnership.createKitty(_matronId, matron_siringWithId, parentGen + 1, childGenes, winner);
 
         // Clear the reference to sire from the matron (REQUIRED! Having siringWithId
         // set is what marks a matron as being pregnant.)
