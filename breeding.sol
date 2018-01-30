@@ -451,11 +451,7 @@ contract KittyBreeding is KittyAccessControl {
         uint256 childGenes = geneScience.mixGenes(matron_genes, sireId_genes);
 
         // Make the new kitten!
-<<<<<<< HEAD
         uint256 kittenId = kittyOwnership.createKitty(_matronId, _sireId, parentGen + 1, childGenes, _owner);
-=======
-        uint256 kittenId = kittyOwnership.createKitty(_matronId, matron_siringWithId, parentGen + 1, childGenes, winner);
->>>>>>> 66e61fe0aef1535041978c5f755282fa97d6cb69
 
         // Clear the reference to sire from the matron (REQUIRED! Having siringWithId
         // set is what marks a matron as being pregnant.)
