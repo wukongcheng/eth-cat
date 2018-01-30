@@ -394,19 +394,17 @@ contract KittyBreeding is KittyAccessControl {
         //giveBirth(_matronId);
     }
 
-    /// @notice Breed a Kitty you own (as matron) with a sire that you own, or for which you
-    ///  have previously been given Siring approval. Will either make your cat pregnant, or will
-    ///  fail entirely. Requires a pre-payment of the fee given out to the first caller of giveBirth()
-    /// @param _matronId The ID of the Kitty acting as matron (will end up pregnant if successful)
-    /// @param _sireId The ID of the Kitty acting as sire (will begin its siring cooldown if successful)
     function breedWithAuto(uint256 _matronId, uint256 _sireId)
         external
     {
-        // Caller must own the matron.
         require(kittyOwnership._owns(msg.sender, _matronId));
-
         require(_isSiringPermitted(_sireId, _matronId));
 
+        breedWith(_matronId, _sireId);
+    }
+
+    function breedWith(uint256 _matronId, uint256 _sireId) internal
+    {
         // Make sure matron isn't pregnant, or in the middle of a siring cooldown
         require(kittyOwnership.isReadyToBreed(_matronId));
 
@@ -423,6 +421,14 @@ contract KittyBreeding is KittyAccessControl {
         _breedWith(_matronId, _sireId);
     }
 
+    function breedSelfKitty(uint256 _matronId, uint256 _sireId) external
+    {
+        require(kittyOwnership._owns(msg.sender, _matronId));
+        require(kittyOwnership._owns(msg.sender, _sireId));
+
+        breedWith(_matronId, _sireId);
+    }
+
   
     function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner)
         external
@@ -431,6 +437,19 @@ contract KittyBreeding is KittyAccessControl {
         require(msg.sender == siringaction);
 
         return giveBirth(_matronId, _sireId, _owner);
+    }
+
+    function giveBirthBySelf(uint256 _matronId, uint256 _sireId) 
+        external
+        returns(uint256)
+    {
+        require(kittyOwnership._owns(msg.sender, _matronId));
+        require(kittyOwnership._owns(msg.sender, _sireId));
+
+        var (,,,,,sireIdWith,,,) = kittyOwnership.getKitty(_matronId);
+        require(sireIdWith == _sireId);
+
+        return giveBirth(_matronId, _sireId, msg.sender);
     }
 
     function giveBirth(uint256 _matronId, uint256 _sireId, address _owner)
