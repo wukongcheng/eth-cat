@@ -513,6 +513,16 @@ contract SiringClockAuction is ClockAuction {
         require(winnerInfo.winner==msg.sender);
 
         kittyBreeding.breedWithAuto(winnerInfo.matronId, _sireId);
+    }
+
+    function giveBirth(
+        uint256 _sireId)
+        external
+    {
+        AuctionWinner storage winnerInfo = tokenIdToBidWinner[_sireId];
+        require(winnerInfo.winner==msg.sender);
+
+        kittyBreeding.giveBirth(winnerInfo.matronId,winnerInfo.winner);
 
         _transfer(winnerInfo.seller, _sireId);
         _transfer(msg.sender, winnerInfo.matronId);
@@ -523,4 +533,23 @@ contract SiringClockAuction is ClockAuction {
         delete tokenIdToBidWinner[_sireId];
     }
 
+    function getAuctionWinner(uint256 _sireId)
+        external
+        view
+        returns
+        (
+            address seller,
+            address winner,
+            uint256 matronId,
+            uint256 price
+        )
+    {
+        AuctionWinner storage winnerInfo = tokenIdToBidWinner[_sireId];
+        return (
+            winnerInfo.seller,
+            winnerInfo.winner,
+            winnerInfo.matronId,
+            winnerInfo.price
+        );
+    }
 }

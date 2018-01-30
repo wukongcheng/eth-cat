@@ -266,7 +266,7 @@ contract KittyBreeding is KittyAccessControl {
 
     function _triggerCooldown(uint256 _tokenId) internal {
         var (,,,,,cooldownIndex,,breedTimes) = kittyOwnership.getKitty(_tokenId);
-        
+
         // Compute an estimation of the cooldown time in blocks (based on current cooldownIndex).
         uint64 blocknum = uint64(cooldowns[cooldownIndex] / secondsPerBlock);
         blocknum = blocknum + uint64(breedTimes) * (blocknum / 5);
@@ -383,7 +383,7 @@ contract KittyBreeding is KittyAccessControl {
         var (,,cooldownEndBlock,,,,,) = kittyOwnership.getKitty(_matronId);
         Pregnant(kittyOwnership.ownerOf(_matronId), _matronId, _sireId, cooldownEndBlock);
 
-        giveBirth(_matronId);
+        //giveBirth(_matronId);
     }
 
     /// @notice Breed a Kitty you own (as matron) with a sire that you own, or for which you
@@ -427,7 +427,7 @@ contract KittyBreeding is KittyAccessControl {
         require(_isReadyToGiveBirth(uint32(matron_siringWithId),uint64(matron_cooldownEndBlock)));
 
         var (sireId_matron_genes,,,,,,,sireId_generation) = kittyOwnership.getKitty(matron_siringWithId);
-        
+
         // Determine the higher generation number of the two parents
         uint16 parentGen = uint16(matron_generation);
         if (sireId_generation > matron_generation) {
