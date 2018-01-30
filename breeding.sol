@@ -183,7 +183,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
@@ -265,7 +266,7 @@ contract KittyBreeding is KittyAccessControl {
     }
 
     function _triggerCooldown(uint256 _tokenId) internal {
-        var (,,,,,cooldownIndex,,breedTimes) = kittyOwnership.getKitty(_tokenId);
+        var (,,,,,cooldownIndex,,,breedTimes) = kittyOwnership.getKitty(_tokenId);
 
         // Compute an estimation of the cooldown time in blocks (based on current cooldownIndex).
         uint64 blocknum = uint64(cooldowns[cooldownIndex] / secondsPerBlock);
@@ -297,7 +298,7 @@ contract KittyBreeding is KittyAccessControl {
     {
         require(_kittyId > 0);
         // A kitty is pregnant if and only if this field is set
-        var (,,,,,siringWithId,,) = kittyOwnership.getKitty(_kittyId);
+        var (,,,,,siringWithId,,,) = kittyOwnership.getKitty(_kittyId);
         return siringWithId != 0;
     }
 
@@ -314,12 +315,12 @@ contract KittyBreeding is KittyAccessControl {
             return false;
         }
 
-        var (,,,matron_matronId,matron_sireId,,,) = kittyOwnership.getKitty(_matronId);
+        var (,,,matron_matronId,matron_sireId,,,,) = kittyOwnership.getKitty(_matronId);
         // Kitties can't breed with their parents.
         if (matron_matronId == _sireId || matron_sireId == _sireId) {
             return false;
         }
-        var (,,,sire_matronId,sire_sireId,,,) = kittyOwnership.getKitty(_sireId);
+        var (,,,sire_matronId,sire_sireId,,,,) = kittyOwnership.getKitty(_sireId);
         if (sire_matronId == _matronId || sire_sireId == _matronId) {
             return false;
         }
@@ -380,7 +381,7 @@ contract KittyBreeding is KittyAccessControl {
         pregnantKitties++;
 
         // Emit the pregnancy event.
-        var (,,cooldownEndBlock,,,,,) = kittyOwnership.getKitty(_matronId);
+        var (,,cooldownEndBlock,,,,,,) = kittyOwnership.getKitty(_matronId);
         Pregnant(kittyOwnership.ownerOf(_matronId), _matronId, _sireId, cooldownEndBlock);
 
         //giveBirth(_matronId);
@@ -420,13 +421,13 @@ contract KittyBreeding is KittyAccessControl {
         internal
         returns(uint256)
     {
-        var (matron_genes,matron_birthTime,matron_cooldownEndBlock,,,matron_siringWithId,,matron_generation) = kittyOwnership.getKitty(_matronId);
+        var (matron_genes,matron_birthTime,matron_cooldownEndBlock,,,matron_siringWithId,,matron_generation,) = kittyOwnership.getKitty(_matronId);
         // Check that the matron is a valid cat.
         require(matron_birthTime != 0);
         // Check that the matron is pregnant, and that its time has come!
         require(_isReadyToGiveBirth(uint32(matron_siringWithId),uint64(matron_cooldownEndBlock)));
 
-        var (sireId_matron_genes,,,,,,,sireId_generation) = kittyOwnership.getKitty(matron_siringWithId);
+        var (sireId_matron_genes,,,,,,,sireId_generation,) = kittyOwnership.getKitty(matron_siringWithId);
 
         // Determine the higher generation number of the two parents
         uint16 parentGen = uint16(matron_generation);

@@ -281,7 +281,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
@@ -465,7 +466,7 @@ contract KittyMinting is KittyAuction {
     {
         require(kittyOwnership._owns(msg.sender, _kittyId));
 
-        var (,,,,,,,generation) = kittyOwnership.getKitty(_kittyId);
+        var (,,,,,,,generation,) = kittyOwnership.getKitty(_kittyId);
         require(generation == 0);
 
         saleAuction.createAuction(

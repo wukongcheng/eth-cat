@@ -547,7 +547,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     ) {
         Kitty storage kit = kitties[_tokenId];
         
@@ -559,6 +560,7 @@ contract KittyOwnership is KittyBase, ERC721 {
         sireId = uint256(kit.sireId);
         generation = uint256(kit.generation);
         genes = kit.genes;
+        breedTimes = uint256(kit.breedTimes);
     }
     
     function setSiringWithId(uint256 _tokenId, uint32 _siringWithId) external {

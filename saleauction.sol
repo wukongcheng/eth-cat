@@ -182,7 +182,8 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 sireId,
         uint256 siringWithId,
         uint256 cooldownIndex,
-        uint256 generation
+        uint256 generation,
+        uint256 breedTimes
     );
     function createKitty(
         uint256 _matronId,
@@ -449,7 +450,7 @@ contract SaleClockAuction is ClockAuction {
         _bid(_tokenId, _price);
         
         // If not a gen0 auction, exit
-        var (,,,,,,,generation) = kittyOwnership.getKitty(_tokenId);
+        var (,,,,,,,generation,) = kittyOwnership.getKitty(_tokenId);
         if (generation == 0) {
             // Track gen0 sale prices
             lastGen0SalePrices[gen0SaleCount % 5] = _price;
