@@ -466,8 +466,6 @@ contract KittyMinting is KittyAuction {
 
     function createGen0SaleAuction(uint256 _kittyId) external onlyCOO
     {
-        require(kittyOwnership._owns(msg.sender, _kittyId));
-
         var (,,,,,,,generation,) = kittyOwnership.getKitty(_kittyId);
         require(generation == 0);
 
@@ -476,7 +474,7 @@ contract KittyMinting is KittyAuction {
             _computeNextGen0Price(),
             0,
             GEN0_AUCTION_DURATION,
-            address(this)
+            cooAddress
         );
 
     }

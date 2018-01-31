@@ -518,7 +518,7 @@ contract SiringClockAuction is ClockAuction {
         external
     {
         AuctionWinner storage winnerInfo = tokenIdToBidWinner[_sireId];
-        require(winnerInfo.winner==msg.sender);
+        require(winnerInfo.winner == msg.sender);
 
         kittyBreeding.breedWithAuto(winnerInfo.matronId, _sireId);
     }
