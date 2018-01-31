@@ -359,7 +359,7 @@ contract KittyBase is KittyAccessControl {
         // per ERC721 draft
         _transfer(0, _owner, newKittenId);
 
-        return 0;
+        return newKittenId;
     }
 }
 
