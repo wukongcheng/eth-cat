@@ -274,7 +274,7 @@ contract KittyBase is KittyAccessControl {
     SiringClockAuction public siringAuction;
     GeneScience public geneScience;
 
-    function setGeneScienceAddress(address _address) external {
+    function setGeneScienceAddress(address _address) external onlyCEO {
         geneScience = GeneScience(_address);
     }
 
@@ -377,19 +377,19 @@ contract KittyOwnership is KittyBase, ERC721 {
         cooAddress = msg.sender;
     }
 
-    function setKittyCoreAddress(address _address) external {
+    function setKittyCoreAddress(address _address) external onlyCEO {
         kittycore = _address;
     }
 
-    function setBreedingAddress(address _address) external {
+    function setBreedingAddress(address _address) external onlyCEO {
         breeding = _address;
     }
 
-    function setSaleAuctionAddress(address _address) external {
+    function setSaleAuctionAddress(address _address) external onlyCEO {
         saleAuction = SaleClockAuction(_address);
     }
 
-    function setSiringAuctionAddress(address _address) external {
+    function setSiringAuctionAddress(address _address) external onlyCEO {
         siringAuction = SiringClockAuction(_address);
     }
     

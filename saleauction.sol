@@ -208,7 +208,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     function approveToSiringAuction(uint256 _tokenId) external;
 }
 
-contract ClockAuctionBase {
+contract ClockAuctionBase is KittyAccessControl {
 
     // Represents an auction on an NFT
     struct Auction {
@@ -397,16 +397,21 @@ contract SaleClockAuction is ClockAuction {
     uint256 public gen0SaleCount;
     uint256[5] public lastGen0SalePrices;
 
-    function setERC721Address(address _nftAddress) external {
+    function SaleClockAuction() public {
+        ceoAddress = msg.sender;
+        cooAddress = msg.sender;
+    }
+
+    function setERC721Address(address _nftAddress) external onlyCEO {
         nonFungibleContract = ERC721(_nftAddress);
         kittyOwnership = KittyOwnership(_nftAddress);
     }
 
-    function setERC20Address(address _erc20Address) external {
+    function setERC20Address(address _erc20Address) external onlyCEO {
         niuTokenContract = ERC20(_erc20Address);
     }
 
-    function setKittyCoreAddress(address _address) external{
+    function setKittyCoreAddress(address _address) external onlyCEO {
         kittycore = _address;
     }
 

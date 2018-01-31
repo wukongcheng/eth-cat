@@ -230,7 +230,7 @@ contract KittyBreeding is KittyAccessControl {
     function giveBirthByAuction(uint256 _matronId, uint256 _sireId, address _owner) external returns(uint256);
 }
 
-contract ClockAuctionBase {
+contract ClockAuctionBase is KittyAccessControl {
 
     // Represents an auction on an NFT
     struct Auction {
@@ -420,20 +420,25 @@ contract SiringClockAuction is ClockAuction {
     bool public isSiringClockAuction = true;
     KittyBreeding public kittyBreeding;
 
-    function setERC721Address(address _nftAddress) external {
+    function SiringClockAuction() public {
+        ceoAddress = msg.sender;
+        cooAddress = msg.sender;
+    }
+
+    function setERC721Address(address _nftAddress) external onlyCEO {
         nonFungibleContract = ERC721(_nftAddress);
         kittyOwnership = KittyOwnership(_nftAddress);
     }
 
-    function setERC20Address(address _erc20Address) external {
+    function setERC20Address(address _erc20Address) external onlyCEO {
         niuTokenContract = ERC20(_erc20Address);
     }
 
-    function setKittyBreedingAddress(address _address) external{
+    function setKittyBreedingAddress(address _address) external onlyCEO {
         kittyBreeding = KittyBreeding(_address);
     }
 
-    function setKittyCoreAddress(address _address) external{
+    function setKittyCoreAddress(address _address) external onlyCEO {
         kittycore = _address;
     }
 
