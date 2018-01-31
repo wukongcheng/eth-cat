@@ -615,7 +615,6 @@ contract KittyOwnership is KittyBase, ERC721 {
     }
 
     function isReadyToBreed(uint256 _tokenId) external view returns (bool) {
-        require(_tokenId > 0);
         Kitty storage _kit = kitties[_tokenId];
         return (_kit.siringWithId == 0) && (_kit.cooldownEndBlock <= uint64(block.number));
     }
