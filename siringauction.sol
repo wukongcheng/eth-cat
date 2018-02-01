@@ -404,7 +404,7 @@ contract ClockAuction is ClockAuctionBase {
     }
 
     function getCurrentPrice(uint256 _tokenId)
-        internal
+        public
         view
         returns (uint256)
     {
