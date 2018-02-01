@@ -73,7 +73,7 @@ contract ClockAuction is ClockAuctionBase {
         external
         view
         returns (bool);
-    function getCurrentPrice(uint256 _tokenId) external view returns (uint256);
+    function getCurrentPrice(uint256 _tokenId) public view returns (uint256);
 
 }
 
